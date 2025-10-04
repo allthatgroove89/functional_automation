@@ -1,0 +1,39 @@
+{
+  "apps": [
+    {
+      "name": "Notepad",
+      "path": "C:\\Windows\\System32\\notepad.exe",
+      "startup_delay": 2,
+      "max_retries": 3,
+      "verification_templates": [
+        "templates/notepad_titlebar.png"
+      ]
+    },
+    {
+      "name": "Microsoft Edge",
+      "path": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+      "args": ["--app=https://copilot.microsoft.com"],
+      "startup_delay": 3,
+      "max_retries": 3,
+      "verification_templates": [
+        "templates/copilot_titlebar.png"
+      ]
+    }
+  ],
+  "default_app": "Notepad",
+  "instructions_file": "config/instructions.json",
+  "settings": {
+    "screenshot_dir": "screenshots",
+    "log_dir": "logs",
+    "checkpoint_dir": "checkpoints",
+    "email": {
+      "enabled": true,
+      "to": "user@example.com"
+    },
+    "retry": {
+      "max_attempts": 3,
+      "delay_seconds": 2
+    }
+  }
+}
+

@@ -1,0 +1,92 @@
+{
+  "objectives": [
+    {
+      "id": "notepad_basic_typing",
+      "name": "Basic Notepad Typing",
+      "app": "Notepad",
+      "actions": [
+        {
+          "type": "type_text",
+          "text": "Hello, this is automated typing in Notepad!",
+          "description": "Type hello message"
+        }
+      ],
+      "supported": true
+    },
+    {
+      "id": "notepad_close_test",
+      "name": "Test Close Notepad Dialog",
+      "app": "Notepad",
+      "actions": [
+        {
+          "type": "close_window",
+          "app_name": "Notepad",
+          "description": "Close Notepad by clicking X button"
+        }
+      ],
+      "supported": false,
+      "reason": "Test objective - run manually only"
+    },
+    {
+      "id": "notepad_delete_and_close",
+      "name": "Delete All Text and Close Notepad",
+      "app": "Notepad",
+      "actions": [
+        {
+          "type": "hotkey",
+          "keys": ["ctrl", "a"],
+          "description": "Select all text in Notepad",
+          "prerequisites": ["app_maximized"]
+        },
+        {
+          "type": "key_press",
+          "key": "backspace",
+          "description": "Delete all selected text"
+        },
+        {
+          "type": "close_window",
+          "app_name": "Notepad",
+          "description": "Close Notepad by clicking X button"
+        }
+      ],
+      "supported": true
+    },
+    {
+      "id": "notepad_unsupported_feature",
+      "name": "Unsupported Notepad Feature",
+      "app": "Notepad",
+      "actions": [
+        {
+          "type": "complex_action",
+          "description": "This is an unsupported feature"
+        }
+      ],
+      "supported": false,
+      "reason": "Feature not yet implemented"
+    },
+    {
+      "id": "notepad_advanced_formatting",
+      "name": "Advanced Text Formatting",
+      "app": "Notepad",
+      "actions": [
+        {
+          "type": "format_text",
+          "description": "Apply bold formatting"
+        }
+      ],
+      "supported": false,
+      "reason": "Notepad doesn't support rich text formatting"
+    }
+  ],
+  "workflow_templates": [],
+  "retry_policies": {
+    "max_retries": 3,
+    "retry_delay": 2,
+    "on_failure": "notify_developer"
+  },
+  "verification_settings": {
+    "enable_template_matching": true,
+    "enable_ocr": true,
+    "confidence_threshold": 0.8
+  }
+}
