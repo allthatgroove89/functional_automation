@@ -27,3 +27,16 @@ def get_objectives(config, objective_ids=None):
     
     return supported, unsupported
 
+
+def get_app_config(config, app_name):
+    """Get configuration for a specific app"""
+    apps = config.get('apps', [])
+    for app in apps:
+        if app.get('name') == app_name:
+            return app
+    raise ValueError(f"App '{app_name}' not found in config")
+
+
+def get_default_app(config):
+    """Get the default app name"""
+    return config.get('default_app', 'Notepad')
