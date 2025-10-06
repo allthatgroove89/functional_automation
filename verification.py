@@ -1,11 +1,10 @@
 """Action verification utilities - Prerequisites and completion checks"""
 import time
-from typing import Dict, Any, Optional
 import ui_detection
 from window_ops import find_window, is_window_maximized
 
 
-def verify_prerequisite(prerequisite: str, context: Dict[str, Any]) -> bool:
+def verify_prerequisite(prerequisite, context):
     """Verify a single prerequisite is met
     
     Args:
@@ -15,7 +14,7 @@ def verify_prerequisite(prerequisite: str, context: Dict[str, Any]) -> bool:
     Returns:
         True if prerequisite met, False otherwise
     """
-    print(f"  ↻ Checking prerequisite: {prerequisite}")
+    print(f"  [CHECK] Checking prerequisite: {prerequisite}")
     
     if prerequisite == "app_maximized":
         app_name = context.get('app_name')
@@ -42,12 +41,12 @@ def verify_prerequisite(prerequisite: str, context: Dict[str, Any]) -> bool:
         print(f"  ⚠ Unknown prerequisite: {prerequisite}")
         result = True  # Unknown prerequisites pass
     
-    status = "✓" if result else "✗"
+    status = "[OK]" if result else "[FAIL]"
     print(f"  {status} Prerequisite '{prerequisite}': {'Met' if result else 'Not met'}")
     return result
 
 
-def verify_prerequisites(prerequisites: list, context: Dict[str, Any]) -> bool:
+def verify_prerequisites(prerequisites, context):
     """Verify all prerequisites are met
     
     Args:
@@ -69,7 +68,7 @@ def verify_prerequisites(prerequisites: list, context: Dict[str, Any]) -> bool:
     return True
 
 
-def verify_action_complete(verification: Dict[str, Any], context: Dict[str, Any]) -> bool:
+def verify_action_complete(verification, context):
     """Verify action completed successfully
     
     Args:
@@ -83,7 +82,7 @@ def verify_action_complete(verification: Dict[str, Any], context: Dict[str, Any]
         return True  # No verification needed
     
     verify_type = verification.get('type')
-    print(f"  ↻ Verifying action completion: {verify_type}")
+    print(f"  [VERIFY] Verifying action completion: {verify_type}")
     
     if verify_type == "template_match":
         # Check if expected element/screen appeared
@@ -119,9 +118,11 @@ def verify_action_complete(verification: Dict[str, Any], context: Dict[str, Any]
         expected_text = verification.get('text')
         region = verification.get('region')
         
-        # TODO: Implement OCR verification
-        print(f"  ⚠ OCR verification not yet implemented")
-        result = True
+        if not expected_text:
+            print("  ⚠ No text specified for OCR verification")
+            result = False
+        else:
+            result = verify_ocr_text(expected_text, region)
         
     elif verify_type == "wait":
         # Simple wait for action to complete
@@ -133,12 +134,12 @@ def verify_action_complete(verification: Dict[str, Any], context: Dict[str, Any]
         print(f"  ⚠ Unknown verification type: {verify_type}")
         result = True
     
-    status = "✓" if result else "✗"
+    status = "[OK]" if result else "[FAIL]"
     print(f"  {status} Verification: {'Passed' if result else 'Failed'}")
     return result
 
 
-def verify_screen_stable(timeout: int = 3, check_interval: float = 0.5) -> bool:
+def verify_screen_stable(timeout=3, check_interval=0.5):
     """Verify screen is stable (not changing)
     
     Args:
@@ -168,7 +169,7 @@ def verify_screen_stable(timeout: int = 3, check_interval: float = 0.5) -> bool:
     return False
 
 
-def verify_screen_changed(previous_screenshot: Optional[str]) -> bool:
+def verify_screen_changed(previous_screenshot):
     """Verify screen has changed from previous state
     
     Args:
@@ -183,7 +184,7 @@ def verify_screen_changed(previous_screenshot: Optional[str]) -> bool:
     return ui_detection.detect_screen_change(previous_screenshot)
 
 
-def verify_app_visually(app_config: Dict[str, Any]) -> bool:
+def verify_app_visually(app_config):
     """Verify app is open and maximized using template matching
     
     Args:
@@ -197,7 +198,7 @@ def verify_app_visually(app_config: Dict[str, Any]) -> bool:
         print("  ⚠ No verification templates configured")
         return True  # Skip visual verification
     
-    print(f"  → Visual verification using {len(templates)} template(s)...")
+    print(f"  [VISUAL] Visual verification using {len(templates)} template(s)...")
     
     # Take screenshot once
     screenshot_path = ui_detection.take_screenshot("screenshots/app_verification.png")
@@ -219,5 +220,61 @@ def verify_app_visually(app_config: Dict[str, Any]) -> bool:
                 print(f"  ✗ Titlebar at unexpected position: y={y}")
                 return False
     
-    print(f"  ✓ Visual verification passed")
+    print(f"  [OK] Visual verification passed")
     return True
+
+
+def verify_ocr_text(expected_text, region=None):
+    """Verify specific text appeared using OCR
+    
+    Args:
+        expected_text: Text to look for
+        region: Optional region to search (x, y, width, height)
+        
+    Returns:
+        True if text found, False otherwise
+    """
+    try:
+        import pytesseract
+        from PIL import Image
+        import ui_detection
+        
+        # Set tesseract path for Windows
+        pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+        
+        # Take screenshot
+        screenshot_path = ui_detection.take_screenshot("screenshots/ocr_verification.png")
+        if not screenshot_path:
+            print("  [FAIL] Failed to take screenshot for OCR")
+            return False
+        
+        # Load and crop if region specified
+        image = Image.open(screenshot_path)
+        if region:
+            x, y, w, h = region
+            image = image.crop((x, y, x+w, y+h))
+            print(f"  [OCR] OCR searching in region: ({x}, {y}, {w}, {h})")
+        
+        # Perform OCR
+        text = pytesseract.image_to_string(image)
+        text = text.strip().lower()
+        expected_text = expected_text.strip().lower()
+        
+        # Check if expected text is in the OCR result
+        found = expected_text in text
+        
+        if found:
+            print(f"  [OK] OCR found expected text: '{expected_text}'")
+        else:
+            print(f"  [FAIL] OCR did not find expected text: '{expected_text}'")
+            print(f"  OCR result: '{text[:100]}...'")
+        
+        return found
+        
+    except ImportError:
+        print("  [WARN] pytesseract not installed - OCR verification disabled")
+        print("  Install with: pip install pytesseract")
+        return True  # Skip OCR if not available
+    except Exception as e:
+        print(f"  [FAIL] Error in OCR verification: {e}")
+        return False

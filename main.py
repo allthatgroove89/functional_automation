@@ -32,7 +32,7 @@ def main():
         notify_error("Failed to launch/prepare application after 3 retries", app_name)
         return False
     
-    print(f"✓ {app_name} prepared successfully (launched, maximized, focused)")
+    print(f"[OK] {app_name} prepared successfully (launched, maximized, focused)")
     
     # Check if objectives were specified
     objective_ids = sys.argv[2].split(',') if len(sys.argv) > 2 else None
@@ -71,7 +71,7 @@ def main():
             notify_error(f"Objective failed after 3 retry attempts", objective['name'])
             return False
     
-    print_banner("✓ Automation complete!")
+    print_banner("[OK] Automation complete!")
     return True
 
 
@@ -81,11 +81,11 @@ def prepare_application_with_retry(app_name, app_config, max_retries=3):
         print(f"\nAttempt {attempt}/{max_retries} to prepare {app_name}...")
         
         if prepare_application(app_name, app_config):
-            print(f"✓ Preparation successful on attempt {attempt}")
+            print(f"[OK] Preparation successful on attempt {attempt}")
             return True
         
         if attempt < max_retries:
-            print(f"✗ Preparation failed, retrying...")
+            print(f"[FAIL] Preparation failed, retrying...")
             import time
             time.sleep(2)
     
@@ -101,8 +101,10 @@ def prepare_application(app_name, app_config):
         window = find_window(app_name)
     
     # Verify window exists and is ready
-    return (window and 
-            focus_window(window) and 
+    if not window:
+        return False
+    
+    return (focus_window(window) and 
             maximize_window(window) and 
             is_window_maximized(window))
 

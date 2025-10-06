@@ -76,6 +76,24 @@
       ],
       "supported": false,
       "reason": "Notepad doesn't support rich text formatting"
+    },
+    {
+      "id": "notepad_ocr_verification_test",
+      "name": "OCR Verification Test",
+      "app": "Notepad",
+      "actions": [
+        {
+          "type": "type_text",
+          "text": "HELLO",
+          "description": "Type simple text for OCR verification",
+          "verification": {
+            "type": "ocr_text",
+            "text": "HELLO",
+            "region": [0, 0, 800, 200]
+          }
+        }
+      ],
+      "supported": true
     }
   ],
   "workflow_templates": [],

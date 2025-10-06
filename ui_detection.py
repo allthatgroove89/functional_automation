@@ -72,7 +72,7 @@ def find_template(template_path, threshold=0.8, region=None, screenshot_path=Non
 
         # Template matching
         result = cv2.matchTemplate(screenshot_gray, template_gray, cv2.TM_CCOEFF_NORMED)
-        min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
+        _, max_val, _, max_loc = cv2.minMaxLoc(result)
 
         if max_val >= threshold:
             # Calculate center of matched region
@@ -349,3 +349,72 @@ def verify_templates_exist(template_paths):
             missing.append(path)
 
     return existing, missing
+
+
+def wait_for_screen_stability(timeout=5, check_interval=0.5):
+    """Wait for screen to become stable (no changes)
+    
+    Args:
+        timeout: Maximum seconds to wait for stability
+        check_interval: Seconds between checks
+        
+    Returns:
+        True if screen stable, False if timeout
+    """
+    from verification import verify_screen_stable
+    return verify_screen_stable(timeout, check_interval)
+
+
+def detect_action_success(action_type, before_screenshot, after_screenshot):
+    """Detect if action was successful based on screen changes
+    
+    Args:
+        action_type: Type of action performed
+        before_screenshot: Path to screenshot before action
+        after_screenshot: Path to screenshot after action
+        
+    Returns:
+        True if action likely successful, False otherwise
+    """
+    if action_type in ['click_image', 'click_text', 'close_window']:
+        # These actions should cause screen changes
+        return detect_screen_change(before_screenshot, after_screenshot)
+    elif action_type in ['type_text', 'hotkey']:
+        # These might not cause visible changes
+        return True
+    else:
+        return True
+
+
+def wait_for_element_appeared(template_path, timeout=10, threshold=0.8):
+    """Wait for element to appear on screen after action
+    
+    Args:
+        template_path: Path to template image
+        timeout: Maximum seconds to wait
+        threshold: Confidence threshold
+        
+    Returns:
+        True if element appeared, False if timeout
+    """
+    return wait_for_element(template_path, timeout, threshold) is not None
+
+
+def verify_screen_ready_for_action(action_type, timeout=3):
+    """Verify screen is ready for specific action type
+    
+    Args:
+        action_type: Type of action to perform
+        timeout: Maximum seconds to wait
+        
+    Returns:
+        True if screen ready, False otherwise
+    """
+    if action_type in ['click_image', 'click_text']:
+        # For click actions, ensure screen is stable
+        return wait_for_screen_stability(timeout)
+    elif action_type in ['type_text', 'hotkey']:
+        # For input actions, basic stability check
+        return wait_for_screen_stability(1)
+    else:
+        return True

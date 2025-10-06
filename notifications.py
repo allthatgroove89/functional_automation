@@ -8,7 +8,6 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-
 def is_email_configured():
     """Check if email configuration is available"""
     required_vars = ['FROM_EMAIL', 'SMTP_SERVER', 'SMTP_USERNAME', 'SMTP_PASSWORD', 'TO_EMAIL']
@@ -72,7 +71,9 @@ def notify_unsupported(unsupported_objectives):
     body = "The following objectives are not supported:\n\n"
     
     for obj in unsupported_objectives:
-        body += f"- {obj['name']}: {obj.get('reason', 'Unknown')}\n"
+        name = obj['name']
+        reason = obj.get('reason', 'Unknown')
+        body += "- " + name + ": " + reason + "\n"
     
     to_email = os.getenv('TO_EMAIL')
     send_email(to_email, subject, body)

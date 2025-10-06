@@ -1,9 +1,6 @@
 import time
 import pyautogui
-import cv2
-import numpy as np
-from config import load_config
-from window_ops import find_window, launch_app, focus_window, maximize_window
+from window_ops import find_window
 import ui_detection
 
 
@@ -53,7 +50,12 @@ def execute_click_image(action):
         print("No template path specified")
         return False
     
-    # Use new ui_detection module
+    """Wait for screen stability before clicking"""
+    from verification import verify_screen_stable
+    if not verify_screen_stable(timeout=2):
+        print("Screen is not stable, skipping click")
+
+    # Use ui_detection module
     return ui_detection.find_and_click_template(
         template_path,
         threshold=confidence,
@@ -102,7 +104,7 @@ def execute_close_window(action):
     
     try:
         # Get window position and size
-        x, y, width, height = window.left, window.top, window.width, window.height
+        x, y, width, _ = window.left, window.top, window.width, window.height
         
         # X button is typically at top-right corner
         # Offset from right edge: ~15px, from top: ~15px
@@ -130,49 +132,6 @@ def execute_close_window(action):
         return False
 
 
-def execute_switch_app(action):
-    """Switch to another application"""
-    app_name = action.get('app_name')
-    if not app_name:
-        print("No app_name specified for switch_app action")
-        return False
-    
-    # Load config to get app details
-    config = load_config()
-    app_config = None
-    for app in config['apps']:
-        if app['name'] == app_name:
-            app_config = app
-            break
-    
-    if not app_config:
-        print(f"App {app_name} not found in config")
-        return False
-    
-    # Try to find existing window
-    window = find_window(app_name)
-    
-    # Launch if not found
-    if not window:
-        print(f"Launching {app_name}...")
-        launch_app(
-            app_config['path'], 
-            app_config.get('startup_delay', 2),
-            app_config.get('args')
-        )
-        time.sleep(1)
-        window = find_window(app_name)
-    
-    # Focus and maximize
-    if window:
-        focus_window(window)
-        maximize_window(window)
-        return True
-    
-    print(f"Could not find or launch {app_name}")
-    return False
-
-
 # Action dispatcher using dictionary
 ACTION_HANDLERS = {
     'type_text': execute_type_text,
@@ -182,9 +141,7 @@ ACTION_HANDLERS = {
     'click_image': execute_click_image,
     'click_text': execute_click_text,
     'close_window': execute_close_window,
-    'switch_app': execute_switch_app,
 }
-
 
 def execute_action(action):
     """Execute any action type"""

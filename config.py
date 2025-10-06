@@ -1,6 +1,5 @@
 import json
 
-
 def load_config(config_path="config/config.json"):
     """Load main config"""
     with open(config_path, 'r') as f:
@@ -20,10 +19,21 @@ def get_objectives(config, objective_ids=None):
     objectives = instructions['objectives']
     
     if objective_ids:
-        objectives = [o for o in objectives if o['id'] in objective_ids]
+        filtered_objectives = []
+        for o in objectives:
+            if o['id'] in objective_ids:
+                filtered_objectives.append(o)
+        objectives = filtered_objectives
     
-    supported = [o for o in objectives if o.get('supported')]
-    unsupported = [o for o in objectives if not o.get('supported')]
+    supported = []
+    unsupported = []
+    
+    # Separate objectives into supported and unsupported lists
+    for o in objectives:
+        if o.get('supported'):
+            supported.append(o)
+        else:
+            unsupported.append(o)
     
     return supported, unsupported
 

@@ -54,8 +54,10 @@ def is_window_maximized(window):
         return False
     
     screen_w, screen_h = pyautogui.size()
+    """ gets the rectangle information of the window """
     rect = window._rect
-    
+
+    # Calculate window ratio
     width_ratio = rect.width / screen_w
     height_ratio = rect.height / screen_h
     

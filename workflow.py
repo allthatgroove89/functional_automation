@@ -27,9 +27,39 @@ def execute_objective(objective, config):
 
 
 def execute_action_with_retry(action, max_retries=3):
-    """Execute action with retry logic"""
+    """Execute action with retry logic and screen stability"""
     for attempt in range(max_retries):
+        # Check screen stability before action
+        from verification import verify_screen_stable
+        if not verify_screen_stable(timeout=2):
+            print("Screen not stable, waiting...")
+            time.sleep(1)
+        
+        # Take screenshot before action for change detection
+        from ui_detection import take_screenshot
+        before_screenshot = take_screenshot("screenshots/before_action.png")
+        
         if execute_action(action):
+            # Take screenshot after action
+            after_screenshot = take_screenshot("screenshots/after_action.png")
+            
+            # Verify screen changed for click actions
+            if action.get('type') in ['click_image', 'click_text', 'close_window']:
+                from ui_detection import detect_screen_change
+                if detect_screen_change(before_screenshot, after_screenshot):
+                    print("[OK] Screen change detected - action successful")
+                else:
+                    print("[WARN] No screen change detected")
+            
+            # Check for action verification
+            verification = action.get('verification')
+            if verification:
+                from verification import verify_action_complete
+                context = {'previous_screenshot': before_screenshot}
+                if not verify_action_complete(verification, context):
+                    print(f"[FAIL] Action verification failed: {action['type']}")
+                    return False
+            
             return True
         
         print(f"Retry {attempt + 1}/{max_retries}")

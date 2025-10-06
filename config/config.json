@@ -8,16 +8,6 @@
       "verification_templates": [
         "templates/notepad_titlebar.png"
       ]
-    },
-    {
-      "name": "Microsoft Edge",
-      "path": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
-      "args": ["--app=https://copilot.microsoft.com"],
-      "startup_delay": 3,
-      "max_retries": 3,
-      "verification_templates": [
-        "templates/copilot_titlebar.png"
-      ]
     }
   ],
   "default_app": "Notepad",
