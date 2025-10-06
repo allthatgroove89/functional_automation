@@ -418,3 +418,331 @@ def verify_screen_ready_for_action(action_type, timeout=3):
         return wait_for_screen_stability(1)
     else:
         return True
+
+
+def find_text_with_bounding_boxes(text, region=None, confidence_threshold=0.8, save_debug=False):
+    """Find text using OCR and return bounding boxes for precise clicking
+    
+    Args:
+        text: Text to search for
+        region: Optional region to search (x, y, width, height)
+        confidence_threshold: Minimum confidence for text detection
+        save_debug: Save debug images for troubleshooting
+        
+    Returns:
+        List of dicts with 'text', 'bbox', 'confidence' for each match
+        Format: [{'text': 'found_text', 'bbox': (x, y, w, h), 'confidence': 0.95}]
+    """
+    try:
+        import pytesseract
+        from PIL import Image, ImageDraw
+        import re
+        
+        # Set tesseract path for Windows
+        pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+        
+        # Take screenshot using existing function
+        screenshot_path = take_screenshot("screenshots/ocr_search.png")
+        if not screenshot_path:
+            return []
+        
+        # Load and crop if region specified
+        image = Image.open(screenshot_path)
+        if region:
+            x, y, w, h = region
+            image = image.crop((x, y, x+w, y+h))
+            print(f"[OCR] Searching in region: ({x}, {y}, {w}, {h})")
+        
+        # Get detailed OCR data with bounding boxes
+        ocr_data = pytesseract.image_to_data(image, output_type=pytesseract.Output.DICT)
+        
+        matches = []
+        text_lower = text.lower()
+        
+        # Process each detected text element
+        for i in range(len(ocr_data['text'])):
+            detected_text = ocr_data['text'][i].strip()
+            confidence = int(ocr_data['conf'][i]) / 100.0
+            
+            if detected_text and confidence >= confidence_threshold:
+                # Check if our target text is in this detected text
+                if text_lower in detected_text.lower():
+                    x = ocr_data['left'][i]
+                    y = ocr_data['top'][i]
+                    w = ocr_data['width'][i]
+                    h = ocr_data['height'][i]
+                    
+                    # Adjust coordinates if we cropped the image
+                    if region:
+                        x += region[0]
+                        y += region[1]
+                    
+                    match = {
+                        'text': detected_text,
+                        'bbox': (x, y, w, h),
+                        'confidence': confidence,
+                        'center': (x + w//2, y + h//2)
+                    }
+                    matches.append(match)
+        
+        if save_debug and matches:
+            # Draw bounding boxes on image for debugging
+            debug_image = image.copy()
+            draw = ImageDraw.Draw(debug_image)
+            for match in matches:
+                x, y, w, h = match['bbox']
+                if region:
+                    x -= region[0]
+                    y -= region[1]
+                draw.rectangle([x, y, x+w, y+h], outline='red', width=2)
+                draw.text((x, y-20), f"{match['confidence']:.2f}", fill='red')
+            
+            debug_path = "screenshots/ocr_debug.png"
+            debug_image.save(debug_path)
+            print(f"[DEBUG] OCR debug image saved: {debug_path}")
+        
+        print(f"[OCR] Found {len(matches)} match(es) for '{text}'")
+        return matches
+        
+    except ImportError:
+        print("[WARN] pytesseract not installed - OCR with bounding boxes disabled")
+        return []
+    except Exception as e:
+        print(f"[ERROR] OCR with bounding boxes failed: {e}")
+        return []
+
+
+def smart_crop_for_ocr(image_path, text_hint=None, min_text_size=20):
+    """Intelligently crop image for better OCR accuracy
+    
+    Args:
+        image_path: Path to image file
+        text_hint: Optional hint about text location ('top', 'bottom', 'center', 'left', 'right')
+        min_text_size: Minimum text size to detect
+        
+    Returns:
+        List of cropped image paths for OCR processing
+    """
+    try:
+        # Load image
+        image = cv2.imread(image_path)
+        if image is None:
+            return []
+        
+        # Convert to grayscale
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        
+        # Apply adaptive thresholding for better text detection
+        thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
+                                     cv2.THRESH_BINARY, 11, 2)
+        
+        # Find contours (potential text regions)
+        contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        
+        # Filter contours by size and aspect ratio
+        text_regions = []
+        for contour in contours:
+            x, y, w, h = cv2.boundingRect(contour)
+            
+            # Filter by size
+            if w < min_text_size or h < min_text_size:
+                continue
+            
+            # Filter by aspect ratio (text is usually wider than tall)
+            aspect_ratio = w / h
+            if aspect_ratio < 0.1 or aspect_ratio > 10:
+                continue
+            
+            text_regions.append((x, y, w, h))
+        
+        # Sort regions by position based on hint
+        if text_hint == 'top':
+            text_regions.sort(key=lambda r: r[1])
+        elif text_hint == 'bottom':
+            text_regions.sort(key=lambda r: r[1], reverse=True)
+        elif text_hint == 'left':
+            text_regions.sort(key=lambda r: r[0])
+        elif text_hint == 'right':
+            text_regions.sort(key=lambda r: r[0], reverse=True)
+        else:
+            # Default: sort by area (largest first)
+            text_regions.sort(key=lambda r: r[2] * r[3], reverse=True)
+        
+        # Create cropped images
+        cropped_paths = []
+        for i, (x, y, w, h) in enumerate(text_regions[:5]):  # Limit to top 5 regions
+            # Add padding around text
+            padding = 10
+            x_start = max(0, x - padding)
+            y_start = max(0, y - padding)
+            x_end = min(image.shape[1], x + w + padding)
+            y_end = min(image.shape[0], y + h + padding)
+            
+            # Crop the region
+            cropped = image[y_start:y_end, x_start:x_end]
+            
+            # Save cropped image
+            cropped_path = f"screenshots/cropped_ocr_{i}.png"
+            cv2.imwrite(cropped_path, cropped)
+            cropped_paths.append(cropped_path)
+            
+            print(f"[CROP] Created cropped region {i}: {cropped_path} ({w}x{h})")
+        
+        return cropped_paths
+        
+    except Exception as e:
+        print(f"[ERROR] Smart cropping failed: {e}")
+        return []
+
+
+def find_text_precise(text, region=None, use_smart_crop=True, text_hint=None):
+    """Find text with enhanced accuracy using smart cropping and bounding boxes
+    
+    Args:
+        text: Text to search for
+        region: Optional region to search (x, y, width, height)
+        use_smart_crop: Use intelligent cropping for better OCR
+        text_hint: Hint about text location for cropping
+        
+    Returns:
+        Dict with 'found', 'location', 'confidence', 'bbox' if found
+    """
+    try:
+        # Take initial screenshot using existing function
+        screenshot_path = take_screenshot("screenshots/ocr_precise.png")
+        if not screenshot_path:
+            return {'found': False, 'error': 'Failed to take screenshot'}
+        
+        # If smart cropping enabled, try cropping first
+        if use_smart_crop:
+            cropped_paths = smart_crop_for_ocr(screenshot_path, text_hint)
+            
+            # Search in each cropped region
+            for i, cropped_path in enumerate(cropped_paths):
+                matches = find_text_with_bounding_boxes(text, save_debug=True)
+                if matches:
+                    # Return the best match
+                    best_match = max(matches, key=lambda m: m['confidence'])
+                    return {
+                        'found': True,
+                        'location': best_match['center'],
+                        'confidence': best_match['confidence'],
+                        'bbox': best_match['bbox'],
+                        'text': best_match['text'],
+                        'method': 'smart_crop'
+                    }
+        
+        # Fallback to regular search
+        matches = find_text_with_bounding_boxes(text, region, save_debug=True)
+        if matches:
+            best_match = max(matches, key=lambda m: m['confidence'])
+            return {
+                'found': True,
+                'location': best_match['center'],
+                'confidence': best_match['confidence'],
+                'bbox': best_match['bbox'],
+                'text': best_match['text'],
+                'method': 'regular'
+            }
+        
+        return {'found': False, 'error': 'Text not found'}
+        
+    except Exception as e:
+        return {'found': False, 'error': f'OCR search failed: {e}'}
+
+
+def click_text_precise(text, region=None, use_smart_crop=True, text_hint=None):
+    """Click on text with enhanced precision using bounding boxes
+    
+    Args:
+        text: Text to click on
+        region: Optional region to search (x, y, width, height)
+        use_smart_crop: Use intelligent cropping for better OCR
+        text_hint: Hint about text location for cropping
+        
+    Returns:
+        True if clicked successfully, False otherwise
+    """
+    try:
+        result = find_text_precise(text, region, use_smart_crop, text_hint)
+        
+        if not result['found']:
+            print(f"[FAIL] Text '{text}' not found: {result.get('error', 'Unknown error')}")
+            return False
+        
+        # Click at the center of the bounding box
+        x, y = result['location']
+        confidence = result['confidence']
+        bbox = result['bbox']
+        
+        print(f"[CLICK] Clicking text '{text}' at ({x}, {y}) with confidence {confidence:.2f}")
+        print(f"[CLICK] Bounding box: {bbox}")
+        
+        # Perform the click
+        pyautogui.click(x, y)
+        
+        # Small delay after click
+        time.sleep(0.5)
+        
+        return True
+        
+    except Exception as e:
+        print(f"[ERROR] Precise text clicking failed: {e}")
+        return False
+
+
+def find_and_click_text(text, region=None, use_smart_crop=True, text_hint=None, delay=0.5):
+    """Find text using OCR and click it (convenience function)
+    
+    Args:
+        text: Text to find and click
+        region: Optional region to search (x, y, width, height)
+        use_smart_crop: Use intelligent cropping for better OCR
+        text_hint: Hint about text location for cropping
+        delay: Delay after clicking
+        
+    Returns:
+        True if found and clicked, False otherwise
+    """
+    return click_text_precise(text, region, use_smart_crop, text_hint)
+
+
+def verify_text_present(text, region=None, confidence_threshold=0.8):
+    """Check if text is present on screen using OCR
+    
+    Args:
+        text: Text to search for
+        region: Optional region to search (x, y, width, height)
+        confidence_threshold: Minimum confidence for text detection
+        
+    Returns:
+        True if text found, False otherwise
+    """
+    matches = find_text_with_bounding_boxes(text, region, confidence_threshold)
+    return len(matches) > 0
+
+
+def wait_for_text(text, timeout=10, region=None, confidence_threshold=0.8, check_interval=0.5):
+    """Wait for text to appear on screen
+    
+    Args:
+        text: Text to wait for
+        timeout: Maximum seconds to wait
+        region: Optional region to search (x, y, width, height)
+        confidence_threshold: Minimum confidence for text detection
+        check_interval: Seconds between checks
+        
+    Returns:
+        True if text found, False if timeout
+    """
+    start_time = time.time()
+    
+    while time.time() - start_time < timeout:
+        if verify_text_present(text, region, confidence_threshold):
+            elapsed = time.time() - start_time
+            print(f"Text '{text}' found after {elapsed:.1f} seconds")
+            return True
+        time.sleep(check_interval)
+    
+    print(f"Text '{text}' not found within {timeout} seconds")
+    return False

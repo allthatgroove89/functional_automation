@@ -16,7 +16,7 @@ def main():
     config = load_config()
     
     # Get app name
-    app_name = sys.argv[1] if len(sys.argv) > 1 else config['default_app']
+    app_name = config['default_app']
     
     # Get app config
     try:
@@ -74,7 +74,7 @@ def main():
     print_banner("[OK] Automation complete!")
     return True
 
-
+# Prepare application with retry logic
 def prepare_application_with_retry(app_name, app_config, max_retries=3):
     """Prepare application with retry logic"""
     for attempt in range(1, max_retries + 1):
@@ -91,7 +91,7 @@ def prepare_application_with_retry(app_name, app_config, max_retries=3):
     
     return False
 
-
+# Launch and prepare application
 def prepare_application(app_name, app_config):
     """Prepare application for automation"""
     # Find or launch window

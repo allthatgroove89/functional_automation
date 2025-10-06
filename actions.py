@@ -94,7 +94,6 @@ def execute_click_text(action):
 def execute_close_window(action):
     """Close window by clicking the X button"""
     app_name = action.get('app_name', 'Notepad')
-    handle_dialog = action.get('handle_dialog', True)
     
     # Find the window
     window = find_window(app_name)
@@ -104,7 +103,7 @@ def execute_close_window(action):
     
     try:
         # Get window position and size
-        x, y, width, _ = window.left, window.top, window.width, window.height
+        x, y, width = window.left, window.top, window.width
         
         # X button is typically at top-right corner
         # Offset from right edge: ~15px, from top: ~15px
@@ -114,16 +113,6 @@ def execute_close_window(action):
         print(f"Clicking close button at ({close_x}, {close_y})")
         pyautogui.click(close_x, close_y)
         time.sleep(0.5)
-        
-        # If handle_dialog is True, try to handle save dialog
-        if handle_dialog:
-            time.sleep(1)
-            
-            # Use keyboard shortcut Tab+Enter instead of clicking random position
-            pyautogui.press('tab')
-            time.sleep(0.3)
-            pyautogui.press('enter')
-            time.sleep(0.5)
         
         return True
         
