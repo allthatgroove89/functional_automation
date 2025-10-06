@@ -1,10 +1,11 @@
 import sys
 from datetime import datetime
-from config import load_config, get_objectives
+from config import load_config, get_objectives, get_app_config
 from notifications import notify_unsupported, notify_error
 from window_ops import find_window, launch_app, focus_window, maximize_window, is_window_maximized
 from workflow import execute_objective
 from state import save_checkpoint
+from utils import print_banner
 
 
 def main():
@@ -18,14 +19,10 @@ def main():
     app_name = sys.argv[1] if len(sys.argv) > 1 else config['default_app']
     
     # Get app config
-    app_config = None
-    for app in config['apps']:
-        if app['name'] == app_name:
-            app_config = app
-            break
-    
-    if not app_config:
-        print(f"App {app_name} not found in config")
+    try:
+        app_config = get_app_config(config, app_name)
+    except ValueError as e:
+        print(str(e))
         return False
     
     # Prepare app (always happens)
@@ -42,9 +39,7 @@ def main():
     
     # If no objectives specified, just exit after preparation (leave app open)
     if not objective_ids:
-        print("\n" + "="*60)
-        print("PREPARATION COMPLETE - App is ready")
-        print("="*60)
+        print_banner("PREPARATION COMPLETE - App is ready")
         print(f"\nTo execute objectives, use: python main.py {app_name} <objective_ids>")
         return True
     
@@ -57,15 +52,11 @@ def main():
     
     # No supported objectives to run
     if not supported:
-        print("\n" + "="*60)
-        print("No supported objectives to execute")
-        print("="*60)
+        print_banner("No supported objectives to execute")
         return True
     
     # Execute objectives
-    print("\n" + "="*60)
-    print(f"Executing {len(supported)} objective(s)...")
-    print("="*60)
+    print_banner(f"Executing {len(supported)} objective(s)...")
     
     session_id = datetime.now().strftime("%Y%m%d_%H%M%S")
     
@@ -80,9 +71,7 @@ def main():
             notify_error(f"Objective failed after 3 retry attempts", objective['name'])
             return False
     
-    print("\n" + "="*60)
-    print("✓ Automation complete!")
-    print("="*60)
+    print_banner("✓ Automation complete!")
     return True
 
 
@@ -105,41 +94,17 @@ def prepare_application_with_retry(app_name, app_config, max_retries=3):
 
 def prepare_application(app_name, app_config):
     """Prepare application for automation"""
-    # Sub-step 1: Check if app is already open
+    # Find or launch window
     window = find_window(app_name)
-    
-    # App not open, launch it
     if not window:
-        print(f"  → Launching {app_name}...")
-        launch_app(
-            app_config['path'], 
-            app_config.get('startup_delay', 2),
-            app_config.get('args')
-        )
+        launch_app(app_config['path'], app_config.get('startup_delay', 2), app_config.get('args'))
         window = find_window(app_name)
-    else:
-        print(f"  → Found existing {app_name} window")
     
-    if not window:
-        print(f"  ✗ Could not find window")
-        return False
-    
-    # Sub-step 2: Focus the window (bring to foreground)
-    print(f"  → Focusing window...")
-    if not focus_window(window):
-        print(f"  ✗ Could not focus window")
-        return False
-    
-    print(f"  → Maximizing window...")
-    if not maximize_window(window):
-        print(f"  ✗ Could not maximize window")
-        return False
-    
-    if not is_window_maximized(window):
-        print(f"  ✗ Window not fully maximized")
-        return False
-    
-    return True
+    # Verify window exists and is ready
+    return (window and 
+            focus_window(window) and 
+            maximize_window(window) and 
+            is_window_maximized(window))
 
 
 if __name__ == "__main__":

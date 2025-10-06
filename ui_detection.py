@@ -3,11 +3,10 @@ import time
 import cv2
 import numpy as np
 import pyautogui
-from typing import Optional, Tuple, List
 import os
 
 
-def take_screenshot(save_path: str = "screenshots/screen.png") -> str:
+def take_screenshot(save_path="screenshots/screen.png"):
     """Take screenshot and save to file
     
     Args:
@@ -29,10 +28,7 @@ def take_screenshot(save_path: str = "screenshots/screen.png") -> str:
         return ""
 
 
-def find_template(template_path: str, 
-                  threshold: float = 0.8,
-                  region: Tuple[int, int, int, int] = None,
-                  screenshot_path: str = None) -> Optional[Tuple[int, int]]:
+def find_template(template_path, threshold=0.8, region=None, screenshot_path=None):
     """Find template image on screen using OpenCV template matching
     
     Args:
@@ -95,7 +91,7 @@ def find_template(template_path: str,
         return None
 
 
-def click_at_location(location: Tuple[int, int], delay: float = 0.5) -> bool:
+def click_at_location(location, delay=0.5):
     """Click at specified screen coordinates
     
     Args:
@@ -116,11 +112,7 @@ def click_at_location(location: Tuple[int, int], delay: float = 0.5) -> bool:
         return False
 
 
-def find_and_click_template(template_path: str,
-                            threshold: float = 0.8,
-                            offset_x: int = 0,
-                            offset_y: int = 0,
-                            delay: float = 0.5) -> bool:
+def find_and_click_template(template_path, threshold=0.8, offset_x=0, offset_y=0, delay=0.5):
     """Find template and click it
     
     Args:
@@ -140,7 +132,7 @@ def find_and_click_template(template_path: str,
     return False
 
 
-def verify_element_present(template_path: str, threshold: float = 0.8) -> bool:
+def verify_element_present(template_path, threshold=0.8):
     """Check if element is present on screen
     
     Args:
@@ -154,10 +146,7 @@ def verify_element_present(template_path: str, threshold: float = 0.8) -> bool:
     return location is not None
 
 
-def wait_for_element(template_path: str,
-                     timeout: int = 10,
-                     threshold: float = 0.8,
-                     check_interval: float = 0.5) -> Optional[Tuple[int, int]]:
+def wait_for_element(template_path, timeout=10, threshold=0.8, check_interval=0.5):
     """Wait for element to appear on screen
     
     Args:
@@ -183,8 +172,7 @@ def wait_for_element(template_path: str,
     return None
 
 
-def find_multiple_templates(template_paths: List[str],
-                            threshold: float = 0.8) -> List[Tuple[str, Tuple[int, int]]]:
+def find_multiple_templates(template_paths, threshold=0.8):
     """Find multiple templates in single screenshot
     
     Args:
@@ -209,9 +197,7 @@ def find_multiple_templates(template_paths: List[str],
     return results
 
 
-def detect_screen_change(previous_screenshot_path: str,
-                         current_screenshot_path: str = None,
-                         threshold: float = 10.0) -> bool:
+def detect_screen_change(previous_screenshot_path, current_screenshot_path=None, threshold=10.0):
     """Detect if screen has changed between two screenshots
     
     Args:
@@ -255,9 +241,7 @@ def detect_screen_change(previous_screenshot_path: str,
         return True
 
 
-def crop_region(screenshot_path: str,
-                region: Tuple[int, int, int, int],
-                save_path: str = None) -> Optional[str]:
+def crop_region(screenshot_path, region, save_path=None):
     """Crop region from screenshot
     
     Args:
@@ -288,8 +272,7 @@ def crop_region(screenshot_path: str,
         return None
 
 
-def cleanup_screenshots(screenshot_dir: str = "screenshots",
-                       patterns: List[str] = None):
+def cleanup_screenshots(screenshot_dir="screenshots", patterns=None):
     """Clean up screenshot files
     
     Args:
@@ -338,7 +321,7 @@ def cleanup_screenshots(screenshot_dir: str = "screenshots",
         print(f"Error cleaning up screenshots: {e}")
 
 
-def get_screen_size() -> Tuple[int, int]:
+def get_screen_size():
     """Get screen dimensions
     
     Returns:
@@ -347,7 +330,7 @@ def get_screen_size() -> Tuple[int, int]:
     return pyautogui.size()
 
 
-def verify_templates_exist(template_paths: List[str]) -> Tuple[List[str], List[str]]:
+def verify_templates_exist(template_paths):
     """Verify which template files exist
     
     Args:
