@@ -65,29 +65,80 @@ def execute_click_image(action):
 
 
 def execute_click_text(action):
-    """Find and click on text using PyAutoGUI's locate functions"""
+    """Find and click on text using OCR"""
     text = action.get('text')
+    region = action.get('region')  # Optional region to search
+    use_smart_crop = action.get('use_smart_crop', True)  # Enable smart cropping by default
+    text_hint = action.get('text_hint')  # Optional hint about text location
+    confidence_threshold = action.get('confidence', 0.8)
     
     if not text:
         print("No text specified for click_text action")
         return False
     
     try:
-        # Try to locate the text on screen
-        location = pyautogui.locateOnScreen(text, confidence=0.8)
-        
-        if location:
-            # Click center of the found text
-            center = pyautogui.center(location)
-            pyautogui.click(center)
-            time.sleep(0.5)
-            return True
-        else:
-            print(f"Text '{text}' not found on screen")
-            return False
+        # Use OCR-based text detection with smart cropping
+        return ui_detection.find_and_click_text(
+            text=text,
+            region=region,
+            use_smart_crop=use_smart_crop,
+            text_hint=text_hint,
+            confidence_threshold=confidence_threshold,
+            delay=0.5
+        )
             
     except Exception as e:
         print(f"Error in click_text: {e}")
+        return False
+
+
+def execute_verify_text(action):
+    """Verify text is present on screen using OCR"""
+    text = action.get('text')
+    region = action.get('region')
+    confidence_threshold = action.get('confidence', 0.8)
+    
+    if not text:
+        print("No text specified for verify_text action")
+        return False
+    
+    try:
+        # Use OCR to verify text presence
+        return ui_detection.verify_text_present(
+            text=text,
+            region=region,
+            confidence_threshold=confidence_threshold
+        )
+        
+    except Exception as e:
+        print(f"Error in verify_text: {e}")
+        return False
+
+
+def execute_wait_for_text(action):
+    """Wait for text to appear using OCR"""
+    text = action.get('text')
+    timeout = action.get('timeout', 10)
+    region = action.get('region')
+    confidence_threshold = action.get('confidence', 0.8)
+    check_interval = action.get('check_interval', 0.5)
+    
+    if not text:
+        print("No text specified for wait_for_text action")
+        return False
+    
+    try:
+        # Use OCR to wait for text
+        return ui_detection.wait_for_text(
+            text=text,
+            timeout=timeout,
+            region=region,
+            confidence_threshold=confidence_threshold,
+            check_interval=check_interval
+        )
+        
+    except Exception as e:
+        print(f"Error in wait_for_text: {e}")
         return False
 
 
@@ -129,6 +180,8 @@ ACTION_HANDLERS = {
     'wait': execute_wait,
     'click_image': execute_click_image,
     'click_text': execute_click_text,
+    'verify_text': execute_verify_text,
+    'wait_for_text': execute_wait_for_text,
     'close_window': execute_close_window,
 }
 
