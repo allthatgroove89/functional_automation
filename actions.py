@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 from config import load_config
 from window_ops import find_window, launch_app, focus_window, maximize_window
+import ui_detection
 
 
 def execute_type_text(action):
@@ -52,41 +53,13 @@ def execute_click_image(action):
         print("No template path specified")
         return False
     
-    try:
-        # Take screenshot
-        screenshot = pyautogui.screenshot()
-        screenshot_np = np.array(screenshot)
-        screenshot_gray = cv2.cvtColor(screenshot_np, cv2.COLOR_RGB2GRAY)
-        
-        # Load template
-        template = cv2.imread(template_path, cv2.IMREAD_GRAYSCALE)
-        if template is None:
-            print(f"Could not load template: {template_path}")
-            return False
-        
-        # Match template
-        result = cv2.matchTemplate(screenshot_gray, template, cv2.TM_CCOEFF_NORMED)
-        min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
-        
-        if max_val >= confidence:
-            # Calculate center of matched region
-            h, w = template.shape
-            center_x = max_loc[0] + w // 2 + offset_x
-            center_y = max_loc[1] + h // 2 + offset_y
-            
-            print(f"Found template at ({center_x}, {center_y}) with confidence {max_val:.2f}")
-            
-            # Click at the location
-            pyautogui.click(center_x, center_y)
-            time.sleep(0.5)
-            return True
-        else:
-            print(f"Template not found. Best match confidence: {max_val:.2f}")
-            return False
-            
-    except Exception as e:
-        print(f"Error in click_image: {e}")
-        return False
+    # Use new ui_detection module
+    return ui_detection.find_and_click_template(
+        template_path,
+        threshold=confidence,
+        offset_x=offset_x,
+        offset_y=offset_y
+    )
 
 
 def execute_click_text(action):
