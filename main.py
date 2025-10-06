@@ -88,7 +88,9 @@ def prepare_application_with_retry(app_name, app_config, max_retries=3):
             print(f"[FAIL] Preparation failed, retrying...")
             import time
             time.sleep(2)
-    
+        else:
+            print(f"[FAIL] All {max_retries} preparation attempts failed for {app_name}")
+            
     return False
 
 # Launch and prepare application
