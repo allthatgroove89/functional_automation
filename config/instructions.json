@@ -51,14 +51,19 @@
           "key": "backspace",
           "description": "Delete all selected text",
           "verification": {
-            "type": "screen_change"
+            "type": "wait",
+            "duration": 1
           },
-          "error_strategy": "email_dev"
+          "error_strategy": "retry_previous"
         },
         {
-          "type": "close_window",
-          "app_name": "Notepad",
-          "description": "Close Notepad by clicking X button",
+          "type": "hotkey",
+          "keys": ["alt", "f4"],
+          "description": "Close Notepad with Alt+F4",
+          "verification": {
+            "type": "wait",
+            "duration": 2
+          },
           "error_strategy": "rollback_all"
         }
       ],
@@ -132,6 +137,306 @@
           "verification": {
             "type": "screen_change"
           }
+        }
+      ],
+      "supported": true
+    },
+    {
+      "id": "notepad_save_only",
+      "name": "Save File Only",
+      "app": "Notepad",
+      "actions": [
+        {
+          "type": "hotkey",
+          "keys": ["ctrl", "a"],
+          "description": "Select all existing text",
+          "prerequisites": ["app_maximized"],
+          "error_strategy": "retry_previous"
+        },
+        {
+          "type": "key_press",
+          "key": "backspace",
+          "description": "Delete all existing text",
+          "error_strategy": "retry_previous"
+        },
+        {
+          "type": "type_text",
+          "text": "SAVE_ONLY_TEST",
+          "description": "Type new content to save",
+          "verification": {
+            "type": "wait",
+            "duration": 1
+          },
+          "error_strategy": "retry_previous"
+        },
+        {
+          "type": "click_text",
+          "text": "File",
+          "description": "Click File menu",
+          "confidence": 0.8,
+          "verification": {
+            "type": "wait",
+            "duration": 1
+          },
+          "error_strategy": "retry_previous"
+        },
+        {
+          "type": "click_text",
+          "text": "Save As",
+          "description": "Click Save As option",
+          "confidence": 0.8,
+          "verification": {
+            "type": "wait",
+            "duration": 2
+          },
+          "error_strategy": "retry_previous"
+        },
+        {
+          "type": "type_text",
+          "text": "test_file.txt",
+          "description": "Type filename in save dialog",
+          "verification": {
+            "type": "wait",
+            "duration": 1
+          },
+          "error_strategy": "retry_previous"
+        },
+        {
+          "type": "key_press",
+          "key": "enter",
+          "description": "Press Enter to save file",
+          "verification": {
+            "type": "wait",
+            "duration": 3
+          },
+          "error_strategy": "email_dev"
+        }
+      ],
+      "supported": true
+    },
+    {
+      "id": "notepad_save_and_close",
+      "name": "Save File and Close Notepad",
+      "app": "Notepad",
+      "actions": [
+        {
+          "type": "hotkey",
+          "keys": ["ctrl", "a"],
+          "description": "Select all existing text",
+          "prerequisites": ["app_maximized"],
+          "error_strategy": "retry_previous"
+        },
+        {
+          "type": "key_press",
+          "key": "backspace",
+          "description": "Delete all selected text",
+          "error_strategy": "retry_previous"
+        },
+        {
+          "type": "type_text",
+          "text": "SAVE_TEST_CONTENT",
+          "description": "Type new content to save",
+          "verification": {
+            "type": "wait",
+            "duration": 1
+          },
+          "error_strategy": "retry_previous"
+        },
+        {
+          "type": "click_image",
+          "template": "templates/save_button.png",
+          "description": "Click Save button in menu",
+          "confidence": 0.8,
+          "verification": {
+            "type": "template_match",
+            "template": "templates/save_dialog.png",
+            "threshold": 0.8,
+            "timeout": 5
+          },
+          "error_strategy": "retry_previous"
+        },
+        {
+          "type": "type_text",
+          "text": "save_close_test.txt",
+          "description": "Type filename in save dialog",
+          "verification": {
+            "type": "wait",
+            "duration": 1
+          },
+          "error_strategy": "retry_previous"
+        },
+        {
+          "type": "click_image",
+          "template": "templates/save_dialog_save_button.png",
+          "description": "Click Save button in dialog",
+          "confidence": 0.8,
+          "verification": {
+            "type": "wait",
+            "duration": 2
+          },
+          "error_strategy": "email_dev"
+        },
+        {
+          "type": "hotkey",
+          "keys": ["alt", "f4"],
+          "description": "Close Notepad with Alt+F4",
+          "verification": {
+            "type": "wait",
+            "duration": 2
+          },
+          "error_strategy": "rollback_all"
+        }
+      ],
+      "supported": true
+    },
+    {
+      "id": "notepad_save_objective",
+      "name": "Save Notepad File",
+      "app": "Notepad",
+      "actions": [
+        {
+          "type": "hotkey",
+          "keys": ["ctrl", "a"],
+          "description": "Select all text in Notepad",
+          "prerequisites": ["app_maximized"],
+          "error_strategy": "rollback_all"
+        },
+        {
+          "type": "key_press",
+          "key": "backspace",
+          "description": "Clear all text",
+          "verification": {
+            "type": "wait",
+            "duration": 1
+          },
+          "error_strategy": "rollback_all"
+        },
+        {
+          "type": "type_text",
+          "text": "Content to save",
+          "description": "Type content to save",
+          "verification": {
+            "type": "wait",
+            "duration": 1
+          },
+          "error_strategy": "rollback_all"
+        },
+        {
+          "type": "hotkey",
+          "keys": ["ctrl", "shift", "s"],
+          "description": "Open Save As dialog",
+          "verification": {
+            "type": "wait",
+            "duration": 1
+          },
+          "error_strategy": "rollback_all"
+        },
+        {
+          "type": "type_text",
+          "text": "test_save.txt",
+          "description": "Type filename",
+          "verification": {
+            "type": "wait",
+            "duration": 1
+          },
+          "error_strategy": "rollback_all"
+        },
+        {
+          "type": "key_press",
+          "key": "enter",
+          "description": "Press Enter to save",
+          "verification": {
+            "type": "wait",
+            "duration": 2
+          },
+          "error_strategy": "rollback_all"
+        }
+      ],
+      "supported": true
+    },
+    {
+      "id": "notepad_close_objective",
+      "name": "Close Notepad",
+      "app": "Notepad",
+      "actions": [
+        {
+          "type": "hotkey",
+          "keys": ["alt", "f4"],
+          "description": "Close Notepad with Alt+F4",
+          "verification": {
+            "type": "wait",
+            "duration": 2
+          },
+          "error_strategy": "rollback_all"
+        }
+      ],
+      "supported": true
+    },
+    {
+      "id": "notepad_close_test_only",
+      "name": "Test Close Notepad Only",
+      "app": "Notepad",
+      "actions": [
+        {
+          "type": "hotkey",
+          "keys": ["alt", "f4"],
+          "description": "Close Notepad with Alt+F4",
+          "verification": {
+            "type": "wait",
+            "duration": 2
+          },
+          "error_strategy": "rollback_all"
+        }
+      ],
+      "supported": true
+    },
+    {
+      "id": "notepad_edit_undo_test",
+      "name": "Edit Menu and Undo Test",
+      "app": "Notepad",
+      "actions": [
+        {
+          "type": "hotkey",
+          "keys": ["ctrl", "a"],
+          "description": "Select all existing text",
+          "prerequisites": ["app_maximized"],
+          "error_strategy": "retry_previous"
+        },
+        {
+          "type": "key_press",
+          "key": "backspace",
+          "description": "Delete all existing text",
+          "error_strategy": "retry_previous"
+        },
+        {
+          "type": "type_text",
+          "text": "UNDO_TEST_TEXT",
+          "description": "Type test text for undo",
+          "verification": {
+            "type": "wait",
+            "duration": 1
+          },
+          "error_strategy": "retry_previous"
+        },
+        {
+          "type": "hotkey",
+          "keys": ["ctrl", "z"],
+          "description": "Use Ctrl+Z to undo the text",
+          "verification": {
+            "type": "wait",
+            "duration": 2
+          },
+          "error_strategy": "retry_previous"
+        },
+        {
+          "type": "type_text",
+          "text": "UNDO_WORKED",
+          "description": "Type new text to verify undo worked",
+          "verification": {
+            "type": "wait",
+            "duration": 1
+          },
+          "error_strategy": "rollback_all"
         }
       ],
       "supported": true

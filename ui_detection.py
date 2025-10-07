@@ -449,7 +449,6 @@ def find_text_with_bounding_boxes(text, region=None, confidence_threshold=0.8, s
     try:
         import pytesseract
         from PIL import Image, ImageDraw
-        import re
         
         # Set tesseract path for Windows
         pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'

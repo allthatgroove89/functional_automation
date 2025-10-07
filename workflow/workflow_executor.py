@@ -1,13 +1,69 @@
+"""
+Workflow Executor Module
+Handles executing objectives in sequence
+"""
+
 import time
-import pyautogui
+from datetime import datetime
 from actions import execute_action
 from verification import verify_prerequisites, verify_action_complete
 from notifications import notify_error
 from state import save_checkpoint
 
 
-def execute_objective(objective, config, session_id=None):
-    """Execute single objective with prerequisite checks and error handling"""
+def execute_workflow_sequence(supported_objectives, config, session_id=None):
+    """
+    For each of the objectives that are supported, start a workflow process to complete them in sequence
+    
+    Args:
+        supported_objectives: List of supported objectives to execute
+        config: Configuration object
+        session_id: Optional session ID for checkpointing
+    
+    Returns:
+        bool: True if all objectives completed successfully, False otherwise
+    """
+    if not supported_objectives:
+        print("No supported objectives to execute")
+        return True
+    
+    print(f"Starting workflow process for {len(supported_objectives)} objectives...")
+    
+    # Generate session ID if not provided
+    if not session_id:
+        session_id = datetime.now().strftime("%Y%m%d_%H%M%S")
+    
+    # Execute each objective in sequence
+    for i, objective in enumerate(supported_objectives):
+        print(f"\n[{i+1}/{len(supported_objectives)}] Starting: {objective['name']}")
+        
+        # Save checkpoint before starting objective
+        save_checkpoint(session_id, objective['id'], i, [])
+        
+        # Execute the objective
+        if not execute_single_objective(objective, config, session_id):
+            print(f"[FAIL] Objective '{objective['name']}' failed")
+            notify_error(f"Objective failed after 3 retry attempts", objective['name'])
+            return False
+        
+        print(f"[OK] Objective '{objective['name']}' completed successfully")
+    
+    print(f"[OK] All {len(supported_objectives)} objectives completed successfully")
+    return True
+
+
+def execute_single_objective(objective, config, session_id=None):
+    """
+    Execute a single objective with prerequisite checks and error handling
+    
+    Args:
+        objective: Single objective to execute
+        config: Configuration object
+        session_id: Optional session ID for checkpointing
+    
+    Returns:
+        bool: True if objective completed successfully, False otherwise
+    """
     print(f"Executing: {objective['name']}")
     
     # Create context for prerequisites
@@ -55,7 +111,17 @@ def execute_objective(objective, config, session_id=None):
 
 
 def execute_action_with_retry(action, max_retries=3, context=None):
-    """Execute action with retry logic, screen stability, and error handling"""
+    """
+    Execute action with retry logic, screen stability, and error handling
+    
+    Args:
+        action: Action to execute
+        max_retries: Maximum number of retry attempts
+        context: Context object for prerequisites
+    
+    Returns:
+        bool: True if action completed successfully, False otherwise
+    """
     if context is None:
         context = {}
     
@@ -123,7 +189,17 @@ def execute_action_with_retry(action, max_retries=3, context=None):
 
 
 def handle_action_failure(action, history, failure_reason):
-    """Handle action failure with error strategies"""
+    """
+    Handle action failure with error strategies
+    
+    Args:
+        action: The failed action
+        history: History of completed actions
+        failure_reason: Reason for failure
+    
+    Returns:
+        bool: False (always fails)
+    """
     print(f"[ERROR] Action failure: {failure_reason}")
     
     # Get error strategy from action or use default
@@ -172,8 +248,15 @@ def handle_rollback_all_strategy(action, history, failure_reason):
 
 
 def rollback_actions(history):
-    """Rollback completed actions"""
+    """
+    Rollback completed actions
+    
+    Args:
+        history: List of completed actions to rollback
+    """
     print(f"Rolling back {len(history)} actions")
+    
+    import pyautogui
     
     for action in reversed(history):
         action_type = action.get('type')
@@ -195,4 +278,3 @@ def rollback_actions(history):
             print("  [WARN] Cannot automatically reopen closed window")
         
         time.sleep(0.5)  # Small delay between rollback actions
-
