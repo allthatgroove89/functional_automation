@@ -8,7 +8,14 @@
         {
           "type": "type_text",
           "text": "Hello, this is automated typing in Notepad!",
-          "description": "Type hello message"
+          "description": "Type hello message",
+          "prerequisites": ["app_maximized"],
+          "verification": {
+            "type": "ocr_text",
+            "text": "Hello",
+            "region": [0, 0, 800, 200]
+          },
+          "error_strategy": "rollback_all"
         }
       ],
       "supported": true
@@ -36,17 +43,23 @@
           "type": "hotkey",
           "keys": ["ctrl", "a"],
           "description": "Select all text in Notepad",
-          "prerequisites": ["app_maximized"]
+          "prerequisites": ["app_maximized"],
+          "error_strategy": "retry_previous"
         },
         {
           "type": "key_press",
           "key": "backspace",
-          "description": "Delete all selected text"
+          "description": "Delete all selected text",
+          "verification": {
+            "type": "screen_change"
+          },
+          "error_strategy": "email_dev"
         },
         {
           "type": "close_window",
           "app_name": "Notepad",
-          "description": "Close Notepad by clicking X button"
+          "description": "Close Notepad by clicking X button",
+          "error_strategy": "rollback_all"
         }
       ],
       "supported": true

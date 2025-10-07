@@ -704,7 +704,10 @@ def find_and_click_text(text, region=None, use_smart_crop=True, text_hint=None, 
     Returns:
         True if found and clicked, False otherwise
     """
-    return click_text_precise(text, region, use_smart_crop, text_hint)
+    result = click_text_precise(text, region, use_smart_crop, text_hint)
+    if result:
+        time.sleep(delay)
+    return result
 
 
 def verify_text_present(text, region=None, confidence_threshold=0.8):

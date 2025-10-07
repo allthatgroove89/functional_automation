@@ -5,15 +5,7 @@ from window_ops import find_window, is_window_maximized
 
 
 def verify_prerequisite(prerequisite, context):
-    """Verify a single prerequisite is met
-    
-    Args:
-        prerequisite: Prerequisite type to check
-        context: Context with app info, config, etc.
-        
-    Returns:
-        True if prerequisite met, False otherwise
-    """
+    """Verify a single prerequisite is met"""
     print(f"  [CHECK] Checking prerequisite: {prerequisite}")
     
     if prerequisite == "app_maximized":
@@ -47,15 +39,7 @@ def verify_prerequisite(prerequisite, context):
 
 
 def verify_prerequisites(prerequisites, context):
-    """Verify all prerequisites are met
-    
-    Args:
-        prerequisites: List of prerequisite strings
-        context: Context dictionary
-        
-    Returns:
-        True if all prerequisites met, False otherwise
-    """
+    """Verify all prerequisites are met"""
     if not prerequisites:
         return True
     
@@ -69,15 +53,7 @@ def verify_prerequisites(prerequisites, context):
 
 
 def verify_action_complete(verification, context):
-    """Verify action completed successfully
-    
-    Args:
-        verification: Verification config with type and parameters
-        context: Context dictionary
-        
-    Returns:
-        True if action verified complete, False otherwise
-    """
+    """Verify action completed successfully"""
     if not verification:
         return True  # No verification needed
     
@@ -140,15 +116,7 @@ def verify_action_complete(verification, context):
 
 
 def verify_screen_stable(timeout=3, check_interval=0.5):
-    """Verify screen is stable (not changing)
-    
-    Args:
-        timeout: How long to wait for stability
-        check_interval: How often to check
-        
-    Returns:
-        True if screen stable, False if still changing
-    """
+    """Verify screen is stable (not changing)"""
     previous_path = ui_detection.take_screenshot("screenshots/stability_check_prev.png")
     time.sleep(check_interval)
     
@@ -170,14 +138,7 @@ def verify_screen_stable(timeout=3, check_interval=0.5):
 
 
 def verify_screen_changed(previous_screenshot):
-    """Verify screen has changed from previous state
-    
-    Args:
-        previous_screenshot: Path to previous screenshot
-        
-    Returns:
-        True if screen changed, False otherwise
-    """
+    """Verify screen has changed from previous state"""
     if not previous_screenshot:
         return True  # No previous screenshot, assume changed
     
@@ -185,14 +146,7 @@ def verify_screen_changed(previous_screenshot):
 
 
 def verify_app_visually(app_config):
-    """Verify app is open and maximized using template matching
-    
-    Args:
-        app_config: App configuration with verification_templates
-        
-    Returns:
-        True if app verified visually, False otherwise
-    """
+    """Verify app is open and maximized using template matching"""
     templates = app_config.get('verification_templates', [])
     if not templates:
         print("  ⚠ No verification templates configured")
@@ -225,15 +179,7 @@ def verify_app_visually(app_config):
 
 
 def verify_ocr_text(expected_text, region=None):
-    """Verify specific text appeared using OCR
-    
-    Args:
-        expected_text: Text to look for
-        region: Optional region to search (x, y, width, height)
-        
-    Returns:
-        True if text found, False otherwise
-    """
+    """Verify specific text appeared using OCR"""
     try:
         import pytesseract
         from PIL import Image
