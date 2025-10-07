@@ -38,7 +38,7 @@ def verify_prerequisite(prerequisite, context):
             result = True
             
     else:
-        print(f"  ⚠ Unknown prerequisite: {prerequisite}")
+        print(f"  [WARN] Unknown prerequisite: {prerequisite}")
         result = True  # Unknown prerequisites pass
     
     status = "[OK]" if result else "[FAIL]"
@@ -75,7 +75,7 @@ def verify_action_complete(verification, context):
         timeout = verification.get('timeout', 5)
         
         if not template:
-            print("  ⚠ No template specified for verification")
+            print("  [WARN] No template specified for verification")
             return False
         
         location = ui_detection.wait_for_element(template, timeout, threshold)
@@ -103,7 +103,7 @@ def verify_action_complete(verification, context):
         region = verification.get('region')
         
         if not expected_text:
-            print("  ⚠ No text specified for OCR verification")
+            print("  [WARN] No text specified for OCR verification")
             result = False
         else:
             result = verify_ocr_text(expected_text, region)
@@ -125,7 +125,7 @@ def verify_action_complete(verification, context):
         result = True
         
     else:
-        print(f"  ⚠ Unknown verification type: {verify_type}")
+        print(f"  [WARN] Unknown verification type: {verify_type}")
         result = True
     
     status = "[OK]" if result else "[FAIL]"
@@ -133,8 +133,17 @@ def verify_action_complete(verification, context):
     return result
 
 
-def verify_screen_stable(timeout=3, check_interval=0.5):
-    """Verify screen is stable (not changing)"""
+def verify_screen_stable(timeout=3, check_interval=0.5, action_type=None):
+    """Verify screen is stable (not changing) with optional action-specific logic
+    
+    Args:
+        timeout: Maximum seconds to wait for stability
+        check_interval: Seconds between checks
+        action_type: Optional action type for specific stability requirements
+        
+    Returns:
+        True if screen stable, False if timeout
+    """
     previous_path = ui_detection.take_screenshot("screenshots/stability_check_prev.png")
     time.sleep(check_interval)
     
@@ -167,7 +176,7 @@ def verify_app_visually(app_config):
     """Verify app is open and maximized using template matching"""
     templates = app_config.get('verification_templates', [])
     if not templates:
-        print("  ⚠ No verification templates configured")
+        print("  [WARN] No verification templates configured")
         return True  # Skip visual verification
     
     print(f"  [VISUAL] Visual verification using {len(templates)} template(s)...")
@@ -242,7 +251,7 @@ def verify_visual_state(expected_state, context):
         return True  # Skip if no template/position specified
     
     else:
-        print(f"  ⚠ Unknown visual state: {expected_state}")
+        print(f"  [WARN] Unknown visual state: {expected_state}")
         return True
 
 

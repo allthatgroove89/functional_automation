@@ -107,6 +107,34 @@
         }
       ],
       "supported": true
+    },
+    {
+      "id": "notepad_visual_state_test",
+      "name": "Visual State Verification Test",
+      "app": "Notepad",
+      "actions": [
+        {
+          "type": "type_text",
+          "text": "Testing app_ready prerequisite",
+          "description": "Type text after verifying app is ready",
+          "prerequisites": ["app_ready"],
+          "verification": {
+            "type": "ocr_text",
+            "text": "Testing",
+            "region": [0, 0, 800, 200]
+          }
+        },
+        {
+          "type": "click",
+          "coordinates": [100, 100],
+          "description": "Click at specific position after verifying element positioning",
+          "prerequisites": ["element_positioned"],
+          "verification": {
+            "type": "screen_change"
+          }
+        }
+      ],
+      "supported": true
     }
   ],
   "workflow_templates": [],

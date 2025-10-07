@@ -146,30 +146,42 @@ def verify_element_present(template_path, threshold=0.8):
     return location is not None
 
 
-def wait_for_element(template_path, timeout=10, threshold=0.8, check_interval=0.5):
-    """Wait for element to appear on screen
+def wait_for_element(template_path, timeout=10, threshold=0.8, check_interval=0.5, wait_for_appearance=True):
+    """Wait for element to appear or disappear on screen
     
     Args:
         template_path: Path to template image
         timeout: Maximum seconds to wait
         threshold: Confidence threshold
         check_interval: Seconds between checks
+        wait_for_appearance: True to wait for appearance, False for disappearance
         
     Returns:
-        (x, y) coordinates if found, None if timeout
+        (x, y) coordinates if found (appearance), True/False if waiting for disappearance
     """
     start_time = time.time()
 
     while time.time() - start_time < timeout:
         location = find_template(template_path, threshold)
-        if location:
+        found = location is not None
+        
+        if wait_for_appearance and found:
             elapsed = time.time() - start_time
             print(f"Element found after {elapsed:.1f} seconds")
             return location
+        elif not wait_for_appearance and not found:
+            elapsed = time.time() - start_time
+            print(f"Element disappeared after {elapsed:.1f} seconds")
+            return True
+            
         time.sleep(check_interval)
 
-    print(f"Element not found within {timeout} seconds")
-    return None
+    if wait_for_appearance:
+        print(f"Element not found within {timeout} seconds")
+        return None
+    else:
+        print(f"Element still present after {timeout} seconds")
+        return False
 
 
 def find_multiple_templates(template_paths, threshold=0.8):
@@ -352,7 +364,7 @@ def verify_templates_exist(template_paths):
 
 
 def wait_for_screen_stability(timeout=5, check_interval=0.5):
-    """Wait for screen to become stable (no changes)
+    """Wait for screen to become stable (no changes) - DEPRECATED: Use verify_screen_stable instead
     
     Args:
         timeout: Maximum seconds to wait for stability
@@ -387,7 +399,7 @@ def detect_action_success(action_type, before_screenshot, after_screenshot):
 
 
 def wait_for_element_appeared(template_path, timeout=10, threshold=0.8):
-    """Wait for element to appear on screen after action
+    """Wait for element to appear on screen after action - DEPRECATED: Use wait_for_element instead
     
     Args:
         template_path: Path to template image
@@ -397,11 +409,11 @@ def wait_for_element_appeared(template_path, timeout=10, threshold=0.8):
     Returns:
         True if element appeared, False if timeout
     """
-    return wait_for_element(template_path, timeout, threshold) is not None
+    return wait_for_element(template_path, timeout, threshold, wait_for_appearance=True) is not None
 
 
 def verify_screen_ready_for_action(action_type, timeout=3):
-    """Verify screen is ready for specific action type
+    """Verify screen is ready for specific action type - DEPRECATED: Use verify_screen_stable instead
     
     Args:
         action_type: Type of action to perform
@@ -410,12 +422,13 @@ def verify_screen_ready_for_action(action_type, timeout=3):
     Returns:
         True if screen ready, False otherwise
     """
+    from verification import verify_screen_stable
     if action_type in ['click_image', 'click_text']:
         # For click actions, ensure screen is stable
-        return wait_for_screen_stability(timeout)
+        return verify_screen_stable(timeout, action_type=action_type)
     elif action_type in ['type_text', 'hotkey']:
         # For input actions, basic stability check
-        return wait_for_screen_stability(1)
+        return verify_screen_stable(1, action_type=action_type)
     else:
         return True
 
@@ -595,8 +608,83 @@ def smart_crop_for_ocr(image_path, text_hint=None, min_text_size=20):
         return []
 
 
+def find_text_unified(text, region=None, use_smart_crop=True, text_hint=None, return_bounding_boxes=False, click_after_find=False, delay=0.5):
+    """Unified text finding with all options - replaces find_text_precise and find_text_with_bounding_boxes
+    
+    Args:
+        text: Text to search for
+        region: Optional region to search (x, y, width, height)
+        use_smart_crop: Use intelligent cropping for better OCR
+        text_hint: Hint about text location for cropping
+        return_bounding_boxes: Return detailed bounding box information
+        click_after_find: Click on the found text
+        delay: Delay before clicking
+        
+    Returns:
+        Dict with 'found', 'location', 'confidence', 'bbox' if found
+    """
+    try:
+        # Take initial screenshot using existing function
+        screenshot_path = take_screenshot("screenshots/ocr_unified.png")
+        if not screenshot_path:
+            return {'found': False, 'error': 'Failed to take screenshot'}
+        
+        # If smart cropping enabled, try cropping first
+        if use_smart_crop:
+            cropped_paths = smart_crop_for_ocr(screenshot_path, text_hint)
+            
+            # Search in each cropped region
+            for i, cropped_path in enumerate(cropped_paths):
+                matches = find_text_with_bounding_boxes(text, save_debug=True)
+                if matches:
+                    # Return the best match
+                    best_match = max(matches, key=lambda m: m['confidence'])
+                    result = {
+                        'found': True,
+                        'location': best_match['center'],
+                        'confidence': best_match['confidence'],
+                        'bbox': best_match['bbox'],
+                        'text': best_match['text'],
+                        'method': 'smart_crop'
+                    }
+                    
+                    # Click if requested
+                    if click_after_find and result['found']:
+                        time.sleep(delay)
+                        click_at_location(result['location'])
+                        print(f"Clicked on text '{text}' at {result['location']}")
+                    
+                    return result
+        
+        # Fallback to regular search
+        matches = find_text_with_bounding_boxes(text, region, save_debug=True)
+        if matches:
+            best_match = max(matches, key=lambda m: m['confidence'])
+            result = {
+                'found': True,
+                'location': best_match['center'],
+                'confidence': best_match['confidence'],
+                'bbox': best_match['bbox'],
+                'text': best_match['text'],
+                'method': 'regular'
+            }
+            
+            # Click if requested
+            if click_after_find and result['found']:
+                time.sleep(delay)
+                click_at_location(result['location'])
+                print(f"Clicked on text '{text}' at {result['location']}")
+            
+            return result
+        
+        return {'found': False, 'error': 'Text not found'}
+        
+    except Exception as e:
+        return {'found': False, 'error': f'OCR search failed: {e}'}
+
+
 def find_text_precise(text, region=None, use_smart_crop=True, text_hint=None):
-    """Find text with enhanced accuracy using smart cropping and bounding boxes
+    """Find text with enhanced accuracy using smart cropping and bounding boxes - DEPRECATED: Use find_text_unified instead
     
     Args:
         text: Text to search for
@@ -692,7 +780,7 @@ def click_text_precise(text, region=None, use_smart_crop=True, text_hint=None):
 
 
 def find_and_click_text(text, region=None, use_smart_crop=True, text_hint=None, delay=0.5):
-    """Find text using OCR and click it (convenience function)
+    """Find text using OCR and click it (convenience function) - DEPRECATED: Use find_text_unified instead
     
     Args:
         text: Text to find and click
@@ -704,14 +792,12 @@ def find_and_click_text(text, region=None, use_smart_crop=True, text_hint=None, 
     Returns:
         True if found and clicked, False otherwise
     """
-    result = click_text_precise(text, region, use_smart_crop, text_hint)
-    if result:
-        time.sleep(delay)
-    return result
+    result = find_text_unified(text, region, use_smart_crop, text_hint, click_after_find=True, delay=delay)
+    return result.get('found', False)
 
 
 def verify_text_present(text, region=None, confidence_threshold=0.8):
-    """Check if text is present on screen using OCR
+    """Check if text is present on screen using OCR - DEPRECATED: Use verify_ocr_text instead
     
     Args:
         text: Text to search for
@@ -721,8 +807,8 @@ def verify_text_present(text, region=None, confidence_threshold=0.8):
     Returns:
         True if text found, False otherwise
     """
-    matches = find_text_with_bounding_boxes(text, region, confidence_threshold)
-    return len(matches) > 0
+    from verification import verify_ocr_text
+    return verify_ocr_text(text, region)
 
 
 def wait_for_text(text, timeout=10, region=None, confidence_threshold=0.8, check_interval=0.5):

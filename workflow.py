@@ -15,7 +15,10 @@ def execute_objective(objective, config, session_id=None):
         'app_name': objective.get('app', 'Notepad'),
         'objective_name': objective['name'],
         'config': config,
-        'session_id': session_id
+        'session_id': session_id,
+        # Context data for element_positioned prerequisite
+        'visual_template': 'templates/notepad_titlebar.png',  # Template image for element detection
+        'expected_position': [50, 10, 5]  # [x, y, tolerance] - expected position with 5 pixel tolerance
     }
     
     actions = objective.get('actions', [])
