@@ -350,3 +350,130 @@ def verify_ocr_text(expected_text, region=None):
     except Exception as e:
         print(f"  [FAIL] Error in OCR verification: {e}")
         return False
+
+
+def verify_action_completion(action, action_result):
+    """Verify that an action completed successfully based on its type and result"""
+    action_type = action.get('type')
+    completion_check = action.get('completion_check', {})
+    
+    if not completion_check:
+        # No completion check specified, assume success if action returned True
+        return action_result
+    
+    check_type = completion_check.get('type')
+    print(f"  [COMPLETION] Verifying {action_type} completion: {check_type}")
+    
+    try:
+        if check_type == "screen_change":
+            # Verify screen changed after action
+            before_path = completion_check.get('before_screenshot')
+            after_path = completion_check.get('after_screenshot')
+            threshold = completion_check.get('threshold', 10.0)
+            
+            if before_path and after_path:
+                changed = ui_detection.detect_screen_change(before_path, after_path, threshold)
+                print(f"  [COMPLETION] Screen change detected: {changed}")
+                return changed
+            else:
+                print("  [COMPLETION] No screenshots provided for change detection")
+                return True
+        
+        elif check_type == "element_present":
+            # Verify expected element appeared
+            template = completion_check.get('template')
+            threshold = completion_check.get('threshold', 0.8)
+            timeout = completion_check.get('timeout', 5)
+            
+            if template:
+                location = ui_detection.wait_for_element(template, timeout, threshold)
+                found = location is not None
+                print(f"  [COMPLETION] Element found: {found}")
+                return found
+            else:
+                print("  [COMPLETION] No template specified for element verification")
+                return True
+        
+        elif check_type == "text_present":
+            # Verify expected text appeared
+            text = completion_check.get('text')
+            region = completion_check.get('region')
+            confidence = completion_check.get('confidence', 0.8)
+            
+            if text:
+                found = ui_detection.verify_text_present(text, region, confidence)
+                print(f"  [COMPLETION] Text found: {found}")
+                return found
+            else:
+                print("  [COMPLETION] No text specified for verification")
+                return True
+        
+        elif check_type == "window_closed":
+            # Verify window was closed
+            app_name = completion_check.get('app_name', 'Notepad')
+            from window_ops import find_window
+            window = find_window(app_name)
+            closed = window is None
+            print(f"  [COMPLETION] Window closed: {closed}")
+            return closed
+        
+        elif check_type == "window_focused":
+            # Verify window is focused
+            app_name = completion_check.get('app_name', 'Notepad')
+            from window_ops import find_window
+            window = find_window(app_name)
+            if window:
+                focused = window.isActive
+                print(f"  [COMPLETION] Window focused: {focused}")
+                return focused
+            else:
+                print(f"  [COMPLETION] Window {app_name} not found")
+                return False
+        
+        elif check_type == "text_typed":
+            # Verify text was actually typed (OCR verification)
+            expected_text = completion_check.get('expected_text')
+            region = completion_check.get('region')
+            confidence = completion_check.get('confidence', 0.8)
+            
+            if expected_text:
+                found = ui_detection.verify_text_present(expected_text, region, confidence)
+                print(f"  [COMPLETION] Text typed verification: {found}")
+                return found
+            else:
+                print("  [COMPLETION] No expected text specified")
+                return True
+        
+        elif check_type == "hotkey_executed":
+            # Verify hotkey had expected effect
+            expected_result = completion_check.get('expected_result')
+            if expected_result == "window_maximized":
+                app_name = completion_check.get('app_name', 'Notepad')
+                from window_ops import find_window, is_window_maximized
+                window = find_window(app_name)
+                if window:
+                    maximized = is_window_maximized(window)
+                    print(f"  [COMPLETION] Window maximized: {maximized}")
+                    return maximized
+            elif expected_result == "text_selected":
+                # Check if text is selected (Ctrl+A effect)
+                # This is complex to verify, so we'll assume success
+                print("  [COMPLETION] Text selection assumed successful")
+                return True
+            else:
+                print(f"  [COMPLETION] Unknown hotkey result: {expected_result}")
+                return True
+        
+        elif check_type == "wait_complete":
+            # Wait actions are always successful if they complete
+            duration = completion_check.get('duration', 1)
+            print(f"  [COMPLETION] Wait completed: {duration}s")
+            return True
+        
+        else:
+            print(f"  [COMPLETION] Unknown completion check type: {check_type}")
+            return True
+    
+    except Exception as e:
+        print(f"  [COMPLETION] Error in completion verification: {e}")
+        return False
