@@ -24,6 +24,17 @@
       "max_attempts": 3,
       "delay_seconds": 2
     }
+  },
+  "workflow_templates": [],
+  "retry_policies": {
+    "max_retries": 3,
+    "retry_delay": 2,
+    "on_failure": "notify_developer"
+  },
+  "verification_settings": {
+    "enable_template_matching": true,
+    "enable_ocr": true,
+    "confidence_threshold": 0.8
   }
 }
 

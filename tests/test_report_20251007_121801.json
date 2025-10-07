@@ -1,0 +1,91 @@
+{
+  "test_summary": {
+    "total_tests": 13,
+    "passed": 6,
+    "failed": 2,
+    "errors": 1,
+    "skipped": 4,
+    "success_rate": 46.15384615384615,
+    "test_duration": "0:00:25.986192"
+  },
+  "test_results": [
+    {
+      "test_name": "app_preparation_success",
+      "status": "ERROR",
+      "message": "Exception: 'charmap' codec can't encode character '\\u2717' in position 2: character maps to <undefined>",
+      "timestamp": "2025-10-07T12:17:39.032033"
+    },
+    {
+      "test_name": "app_preparation_failure",
+      "status": "PASS",
+      "message": "Expected failure: [WinError 2] The system cannot find the file specified",
+      "timestamp": "2025-10-07T12:17:39.032033"
+    },
+    {
+      "test_name": "app_preparation_retry_success",
+      "status": "SKIP",
+      "message": "Requires complex retry simulation",
+      "timestamp": "2025-10-07T12:17:39.032033"
+    },
+    {
+      "test_name": "action_execution_success",
+      "status": "PASS",
+      "message": "Objective executed successfully",
+      "timestamp": "2025-10-07T12:17:45.486756"
+    },
+    {
+      "test_name": "action_execution_retry_success",
+      "status": "SKIP",
+      "message": "Requires flaky action simulation",
+      "timestamp": "2025-10-07T12:17:45.486756"
+    },
+    {
+      "test_name": "action_execution_failure",
+      "status": "PASS",
+      "message": "Action failure handled correctly",
+      "timestamp": "2025-10-07T12:17:53.472099"
+    },
+    {
+      "test_name": "single_objective_execution",
+      "status": "FAIL",
+      "message": "Single objective failed",
+      "timestamp": "2025-10-07T12:17:54.951732"
+    },
+    {
+      "test_name": "multiple_objectives_sequence",
+      "status": "FAIL",
+      "message": "Some objectives failed",
+      "timestamp": "2025-10-07T12:17:56.160391"
+    },
+    {
+      "test_name": "mixed_objectives",
+      "status": "PASS",
+      "message": "Found 1 supported, 1 unsupported",
+      "timestamp": "2025-10-07T12:17:56.161398"
+    },
+    {
+      "test_name": "error_strategy_retry_previous",
+      "status": "SKIP",
+      "message": "Requires complex error scenario setup",
+      "timestamp": "2025-10-07T12:17:56.161398"
+    },
+    {
+      "test_name": "error_strategy_email_dev",
+      "status": "PASS",
+      "message": "Email notification sent",
+      "timestamp": "2025-10-07T12:17:57.402394"
+    },
+    {
+      "test_name": "error_strategy_rollback_all",
+      "status": "SKIP",
+      "message": "Requires complex rollback scenario setup",
+      "timestamp": "2025-10-07T12:17:57.402394"
+    },
+    {
+      "test_name": "email_notifications",
+      "status": "PASS",
+      "message": "Email notifications tested",
+      "timestamp": "2025-10-07T12:18:01.711706"
+    }
+  ]
+}

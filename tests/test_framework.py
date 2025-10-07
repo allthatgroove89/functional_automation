@@ -27,7 +27,7 @@ class TestFramework:
     def run_all_tests(self):
         """Run all test scenarios"""
         print("=" * 60)
-        print("🧪 AUTOMATION FRAMEWORK TESTING SUITE")
+        print("AUTOMATION FRAMEWORK TESTING SUITE")
         print("=" * 60)
         
         # Phase 1: App Preparation Testing
@@ -58,7 +58,7 @@ class TestFramework:
         
     def test_app_preparation_success(self):
         """Test: App launches successfully on first attempt"""
-        print("\n📱 Testing: App Preparation Success")
+        print("\n[TEST] Testing: App Preparation Success")
         test_name = "app_preparation_success"
         
         try:
@@ -91,7 +91,7 @@ class TestFramework:
     
     def test_app_preparation_failure(self):
         """Test: App fails all 3 attempts → Email sent"""
-        print("\n📱 Testing: App Preparation Failure")
+        print("\n[TEST] Testing: App Preparation Failure")
         test_name = "app_preparation_failure"
         
         try:
@@ -117,7 +117,7 @@ class TestFramework:
     
     def test_app_preparation_retry_success(self):
         """Test: App fails twice, succeeds on 3rd attempt"""
-        print("\n📱 Testing: App Preparation Retry Success")
+        print("\n[TEST] Testing: App Preparation Retry Success")
         test_name = "app_preparation_retry_success"
         
         try:
@@ -130,7 +130,7 @@ class TestFramework:
     
     def test_action_execution_success(self):
         """Test: All actions execute successfully"""
-        print("\n⚡ Testing: Action Execution Success")
+        print("\n[TEST] Testing: Action Execution Success")
         test_name = "action_execution_success"
         
         try:
@@ -156,7 +156,7 @@ class TestFramework:
     
     def test_action_execution_retry_success(self):
         """Test: Action fails, retries succeed"""
-        print("\n⚡ Testing: Action Execution Retry Success")
+        print("\n[TEST] Testing: Action Execution Retry Success")
         test_name = "action_execution_retry_success"
         
         try:
@@ -168,7 +168,7 @@ class TestFramework:
     
     def test_action_execution_failure(self):
         """Test: Action fails all 3 attempts → Rollback + Email"""
-        print("\n⚡ Testing: Action Execution Failure")
+        print("\n[TEST] Testing: Action Execution Failure")
         test_name = "action_execution_failure"
         
         try:
@@ -194,7 +194,7 @@ class TestFramework:
     
     def test_single_objective_execution(self):
         """Test: Single objective execution"""
-        print("\n🎯 Testing: Single Objective Execution")
+        print("\n[TEST] Testing: Single Objective Execution")
         test_name = "single_objective_execution"
         
         try:
@@ -220,7 +220,7 @@ class TestFramework:
     
     def test_multiple_objectives_sequence(self):
         """Test: Multiple objectives in sequence"""
-        print("\n🎯 Testing: Multiple Objectives Sequence")
+        print("\n[TEST] Testing: Multiple Objectives Sequence")
         test_name = "multiple_objectives_sequence"
         
         try:
@@ -248,7 +248,7 @@ class TestFramework:
     
     def test_mixed_objectives(self):
         """Test: Mixed supported/unsupported objectives"""
-        print("\n🎯 Testing: Mixed Objectives")
+        print("\n[TEST] Testing: Mixed Objectives")
         test_name = "mixed_objectives"
         
         try:
@@ -269,7 +269,7 @@ class TestFramework:
     
     def test_error_strategy_retry_previous(self):
         """Test: Error strategy A - retry_previous"""
-        print("\n🔄 Testing: Error Strategy - Retry Previous")
+        print("\n[TEST] Testing: Error Strategy - Retry Previous")
         test_name = "error_strategy_retry_previous"
         
         try:
@@ -281,7 +281,7 @@ class TestFramework:
     
     def test_error_strategy_email_dev(self):
         """Test: Error strategy B - email_dev"""
-        print("\n📧 Testing: Error Strategy - Email Dev")
+        print("\n[TEST] Testing: Error Strategy - Email Dev")
         test_name = "error_strategy_email_dev"
         
         try:
@@ -294,7 +294,7 @@ class TestFramework:
     
     def test_error_strategy_rollback_all(self):
         """Test: Error strategy C - rollback_all"""
-        print("\n🔄 Testing: Error Strategy - Rollback All")
+        print("\n[TEST] Testing: Error Strategy - Rollback All")
         test_name = "error_strategy_rollback_all"
         
         try:
@@ -306,7 +306,7 @@ class TestFramework:
     
     def test_email_notifications(self):
         """Test: Email notifications for all trigger scenarios"""
-        print("\n📧 Testing: Email Notifications")
+        print("\n[TEST] Testing: Email Notifications")
         test_name = "email_notifications"
         
         try:
@@ -331,18 +331,18 @@ class TestFramework:
         self.test_results.append(result)
         
         status_emoji = {
-            'PASS': '✅',
-            'FAIL': '❌',
-            'ERROR': '💥',
-            'SKIP': '⏭️'
+            'PASS': '[PASS]',
+            'FAIL': '[FAIL]',
+            'ERROR': '[ERROR]',
+            'SKIP': '[SKIP]'
         }
         
-        print(f"  {status_emoji.get(status, '❓')} {test_name}: {status} - {message}")
+        print(f"  {status_emoji.get(status, '[?]')} {test_name}: {status} - {message}")
     
     def generate_test_report(self):
         """Generate comprehensive test report"""
         print("\n" + "=" * 60)
-        print("📊 TEST REPORT")
+        print("TEST REPORT")
         print("=" * 60)
         
         total_tests = len(self.test_results)
@@ -352,10 +352,10 @@ class TestFramework:
         skipped = len([r for r in self.test_results if r['status'] == 'SKIP'])
         
         print(f"Total Tests: {total_tests}")
-        print(f"✅ Passed: {passed}")
-        print(f"❌ Failed: {failed}")
-        print(f"💥 Errors: {errors}")
-        print(f"⏭️ Skipped: {skipped}")
+        print(f"[PASS] Passed: {passed}")
+        print(f"[FAIL] Failed: {failed}")
+        print(f"[ERROR] Errors: {errors}")
+        print(f"[SKIP] Skipped: {skipped}")
         
         success_rate = (passed / total_tests * 100) if total_tests > 0 else 0
         print(f"Success Rate: {success_rate:.1f}%")
@@ -378,11 +378,11 @@ class TestFramework:
         with open(report_file, 'w') as f:
             json.dump(report_data, f, indent=2)
         
-        print(f"\n📄 Detailed report saved: {report_file}")
+        print(f"\nDetailed report saved: {report_file}")
         
         # Print failed tests
         if failed > 0 or errors > 0:
-            print("\n❌ FAILED/ERROR TESTS:")
+            print("\n[FAIL] FAILED/ERROR TESTS:")
             for result in self.test_results:
                 if result['status'] in ['FAIL', 'ERROR']:
                     print(f"  - {result['test_name']}: {result['message']}")

@@ -17,8 +17,16 @@ def verify_prerequisite(prerequisite, context):
         # Check if page finished loading (wait for stability)
         result = verify_screen_stable(timeout=3)
         
+    elif prerequisite == "correct_page":
+        # Verify correct page is open using URL or title
+        expected_page = context.get('expected_page')
+        if expected_page:
+            result = verify_correct_page(expected_page, context)
+        else:
+            result = True
+        
     elif prerequisite == "search_complete":
-        # Wait for search to complete (no screen changes)
+        # Wait for file search to complete (no screen changes)
         result = verify_screen_stable(timeout=2)
         
     elif prerequisite == "element_present":
@@ -99,6 +107,16 @@ def verify_action_complete(verification, context):
             result = False
         else:
             result = verify_ocr_text(expected_text, region)
+            
+            # If OCR fails, try template matching as fallback
+            if not result and verification.get('fallback_template'):
+                print("  [FALLBACK] OCR failed, trying template matching...")
+                template_path = verification.get('fallback_template')
+                result = ui_detection.verify_element_present(template_path, threshold=0.8)
+                if result:
+                    print("  [OK] Template matching fallback succeeded")
+                else:
+                    print("  [FAIL] Template matching fallback also failed")
         
     elif verify_type == "wait":
         # Simple wait for action to complete
@@ -178,6 +196,90 @@ def verify_app_visually(app_config):
     return True
 
 
+def verify_visual_state(expected_state, context):
+    """Verify visual state of application"""
+    print(f"  [VISUAL] Verifying visual state: {expected_state}")
+    
+    if expected_state == "app_maximized":
+        # Check if app is visually maximized
+        app_name = context.get('app_name', 'Notepad')
+        from window_ops import find_window, is_window_maximized
+        window = find_window(app_name)
+        if window:
+            return is_window_maximized(window)
+        return False
+    
+    elif expected_state == "app_ready":
+        # Check if app is ready for automation
+        app_config = context.get('config', {}).get('apps', [])
+        for app in app_config:
+            if app.get('name') == context.get('app_name'):
+                return verify_app_visually(app)
+        return True
+    
+    elif expected_state == "element_positioned":
+        # Check if specific element is in correct position
+        template = context.get('visual_template')
+        expected_position = context.get('expected_position')  # (x, y, tolerance)
+        
+        if template and expected_position:
+            location = ui_detection.find_template(template, threshold=0.8)
+            if location:
+                x, y = location
+                expected_x, expected_y, tolerance = expected_position
+                
+                # Check if element is within tolerance of expected position
+                x_diff = abs(x - expected_x)
+                y_diff = abs(y - expected_y)
+                
+                if x_diff <= tolerance and y_diff <= tolerance:
+                    print(f"  [VISUAL] Element positioned correctly: ({x}, {y})")
+                    return True
+                else:
+                    print(f"  [VISUAL] Element at wrong position: ({x}, {y}) vs expected ({expected_x}, {expected_y})")
+                    return False
+        
+        return True  # Skip if no template/position specified
+    
+    else:
+        print(f"  ⚠ Unknown visual state: {expected_state}")
+        return True
+
+
+def verify_correct_page(expected_page, context):
+    """Verify correct page is open"""
+    print(f"  [PAGE] Checking if correct page is open: {expected_page}")
+    
+    # Method 1: Check window title
+    if 'title' in expected_page:
+        app_name = context.get('app_name')
+        window = find_window(app_name)
+        if window:
+            actual_title = window.title
+            expected_title = expected_page['title']
+            result = expected_title.lower() in actual_title.lower()
+            print(f"  [PAGE] Title check: '{expected_title}' in '{actual_title}' = {result}")
+            return result
+    
+    # Method 2: Check for specific text on page
+    if 'text' in expected_page:
+        expected_text = expected_page['text']
+        region = expected_page.get('region')
+        result = ui_detection.verify_text_present(expected_text, region)
+        print(f"  [PAGE] Text check: '{expected_text}' found = {result}")
+        return result
+    
+    # Method 3: Check for specific template
+    if 'template' in expected_page:
+        template_path = expected_page['template']
+        result = ui_detection.verify_element_present(template_path)
+        print(f"  [PAGE] Template check: '{template_path}' found = {result}")
+        return result
+    
+    print("  [PAGE] No verification method specified")
+    return True
+
+
 def verify_ocr_text(expected_text, region=None):
     """Verify specific text appeared using OCR"""
     try:
@@ -201,10 +303,15 @@ def verify_ocr_text(expected_text, region=None):
             image = image.crop((x, y, x+w, y+h))
             print(f"  [OCR] OCR searching in region: ({x}, {y}, {w}, {h})")
         
-        # Perform OCR
-        text = pytesseract.image_to_string(image)
+        # Perform OCR with better configuration
+        # Use PSM 6 for single text block, PSM 8 for single word
+        custom_config = r'--oem 3 --psm 6 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+        text = pytesseract.image_to_string(image, config=custom_config)
         text = text.strip().lower()
         expected_text = expected_text.strip().lower()
+        
+        print(f"  [OCR] Raw OCR result: '{text}'")
+        print(f"  [OCR] Expected text: '{expected_text}'")
         
         # Check if expected text is in the OCR result
         found = expected_text in text
@@ -214,6 +321,25 @@ def verify_ocr_text(expected_text, region=None):
         else:
             print(f"  [FAIL] OCR did not find expected text: '{expected_text}'")
             print(f"  OCR result: '{text[:100]}...'")
+            print(f"  [DEBUG] Expected: '{expected_text}' (length: {len(expected_text)})")
+            print(f"  [DEBUG] Found: '{text}' (length: {len(text)})")
+            
+            # Try alternative OCR configuration as fallback
+            print(f"  [FALLBACK] Trying alternative OCR configuration...")
+            try:
+                # Try PSM 8 for single word
+                fallback_config = r'--oem 3 --psm 8'
+                fallback_text = pytesseract.image_to_string(image, config=fallback_config)
+                fallback_text = fallback_text.strip().lower()
+                print(f"  [FALLBACK] Alternative OCR result: '{fallback_text}'")
+                
+                if expected_text in fallback_text:
+                    print(f"  [OK] Fallback OCR found expected text: '{expected_text}'")
+                    found = True
+                else:
+                    print(f"  [FAIL] Fallback OCR also failed")
+            except Exception as e:
+                print(f"  [ERROR] Fallback OCR failed: {e}")
         
         return found
         

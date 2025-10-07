@@ -67,7 +67,7 @@ def main():
         save_checkpoint(session_id, objective['id'], i, [])
         
         # Execute objective - sends email only if action fails after 3 retries
-        if not execute_objective(objective, config):
+        if not execute_objective(objective, config, session_id):
             notify_error(f"Objective failed after 3 retry attempts", objective['name'])
             return False
     

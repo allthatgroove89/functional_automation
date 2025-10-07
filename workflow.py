@@ -3,9 +3,10 @@ import pyautogui
 from actions import execute_action
 from verification import verify_prerequisites, verify_action_complete
 from notifications import notify_error
+from state import save_checkpoint
 
 
-def execute_objective(objective, config):
+def execute_objective(objective, config, session_id=None):
     """Execute single objective with prerequisite checks and error handling"""
     print(f"Executing: {objective['name']}")
     
@@ -13,7 +14,8 @@ def execute_objective(objective, config):
     context = {
         'app_name': objective.get('app', 'Notepad'),
         'objective_name': objective['name'],
-        'config': config
+        'config': config,
+        'session_id': session_id
     }
     
     actions = objective.get('actions', [])
@@ -37,6 +39,11 @@ def execute_objective(objective, config):
             return handle_action_failure(action, history, "execution_failed")
         
         history.append(action)
+        
+        # Save checkpoint after each successful action
+        if session_id:
+            save_checkpoint(session_id, objective['id'], i + 1, history)
+            print(f"  [CHECKPOINT] Saved progress: {len(history)} action(s) completed")
     
     print(f"[OK] Objective '{objective['name']}' completed successfully")
     return True
@@ -55,6 +62,17 @@ def execute_action_with_retry(action, max_retries=3, context=None):
         if not verify_screen_stable(timeout=2):
             print("  Screen not stable, waiting...")
             time.sleep(1)
+        
+        # Ensure correct window is focused before action
+        app_name = context.get('app_name', 'Notepad')
+        from window_ops import find_window, focus_window
+        window = find_window(app_name)
+        if window:
+            print(f"  [FOCUS] Ensuring '{app_name}' window is focused...")
+            focus_window(window)
+            time.sleep(0.5)  # Give time for focus to take effect
+        else:
+            print(f"  [WARN] Window '{app_name}' not found - proceeding anyway")
         
         # Take screenshot before action for change detection
         from ui_detection import take_screenshot
@@ -120,6 +138,7 @@ def handle_action_failure(action, history, failure_reason):
 def handle_retry_previous_strategy(action, history):
     """Error strategy: Retry previous action"""
     print("  [STRATEGY] Retrying previous action...")
+    print(f"  [INFO] Current action '{action.get('type', 'Unknown')}' failed, retrying previous")
     if history:
         previous_action = history[-1]
         print(f"  Retrying: {previous_action['type']}")
@@ -130,6 +149,7 @@ def handle_retry_previous_strategy(action, history):
 def handle_email_dev_strategy(action, history, failure_reason):
     """Error strategy: Email developer and continue"""
     print("  [STRATEGY] Notifying developer...")
+    print(f"  [INFO] History contains {len(history)} completed actions")
     notify_error(f"Action failed: {failure_reason}", action.get('type', 'Unknown'))
     return False
 
