@@ -1326,5 +1326,167 @@
     "enable_template_matching": true,
     "enable_ocr": true,
     "confidence_threshold": 0.8
-  }
+  },
+  "mock_unsupported_objectives": [
+    {
+      "id": "spotify_make_phone_call",
+      "name": "Make Phone Call from Spotify",
+      "app": "Spotify",
+      "actions": [
+        {
+          "type": "hotkey",
+          "keys": ["ctrl", "shift", "c"],
+          "description": "Attempt to open phone dialer",
+          "prerequisites": ["app_maximized"],
+          "verification": {
+            "type": "wait",
+            "duration": 1
+          },
+          "error_strategy": "rollback_all"
+        }
+      ],
+      "supported": false,
+      "reason": "Spotify is a music streaming app, not a phone app. Cannot make calls."
+    },
+    {
+      "id": "spotify_send_email",
+      "name": "Send Email from Spotify",
+      "app": "Spotify",
+      "actions": [
+        {
+          "type": "hotkey",
+          "keys": ["ctrl", "shift", "e"],
+          "description": "Attempt to open email composer",
+          "prerequisites": ["app_maximized"],
+          "verification": {
+            "type": "wait",
+            "duration": 1
+          },
+          "error_strategy": "rollback_all"
+        }
+      ],
+      "supported": false,
+      "reason": "Spotify is a music streaming app, not an email client. Cannot send emails."
+    },
+    {
+      "id": "spotify_take_screenshot",
+      "name": "Take Screenshot in Spotify",
+      "app": "Spotify",
+      "actions": [
+        {
+          "type": "hotkey",
+          "keys": ["ctrl", "shift", "s"],
+          "description": "Attempt to take screenshot",
+          "prerequisites": ["app_maximized"],
+          "verification": {
+            "type": "wait",
+            "duration": 1
+          },
+          "error_strategy": "rollback_all"
+        }
+      ],
+      "supported": false,
+      "reason": "Spotify doesn't have built-in screenshot functionality. Use system screenshot tools instead."
+    },
+    {
+      "id": "spotify_open_calculator",
+      "name": "Open Calculator from Spotify",
+      "app": "Spotify",
+      "actions": [
+        {
+          "type": "hotkey",
+          "keys": ["ctrl", "shift", "calc"],
+          "description": "Attempt to open calculator",
+          "prerequisites": ["app_maximized"],
+          "verification": {
+            "type": "wait",
+            "duration": 1
+          },
+          "error_strategy": "rollback_all"
+        }
+      ],
+      "supported": false,
+      "reason": "Spotify is a music streaming app, not a calculator. Cannot perform mathematical operations."
+    },
+    {
+      "id": "spotify_browse_internet",
+      "name": "Browse Internet from Spotify",
+      "app": "Spotify",
+      "actions": [
+        {
+          "type": "hotkey",
+          "keys": ["ctrl", "shift", "b"],
+          "description": "Attempt to open web browser",
+          "prerequisites": ["app_maximized"],
+          "verification": {
+            "type": "wait",
+            "duration": 1
+          },
+          "error_strategy": "rollback_all"
+        }
+      ],
+      "supported": false,
+      "reason": "Spotify is a music streaming app, not a web browser. Cannot browse the internet."
+    },
+    {
+      "id": "spotify_write_document",
+      "name": "Write Document in Spotify",
+      "app": "Spotify",
+      "actions": [
+        {
+          "type": "type_text",
+          "text": "This is a test document",
+          "description": "Attempt to write text document",
+          "prerequisites": ["app_maximized"],
+          "verification": {
+            "type": "wait",
+            "duration": 1
+          },
+          "error_strategy": "rollback_all"
+        }
+      ],
+      "supported": false,
+      "reason": "Spotify is a music streaming app, not a word processor. Cannot create or edit documents."
+    },
+    {
+      "id": "spotify_play_video",
+      "name": "Play Video in Spotify",
+      "app": "Spotify",
+      "actions": [
+        {
+          "type": "hotkey",
+          "keys": ["ctrl", "shift", "v"],
+          "description": "Attempt to play video",
+          "prerequisites": ["app_maximized"],
+          "verification": {
+            "type": "wait",
+            "duration": 1
+          },
+          "error_strategy": "rollback_all"
+        }
+      ],
+      "supported": false,
+      "reason": "Spotify is primarily a music streaming app. Video playback is limited to music videos and podcasts."
+    },
+    {
+      "id": "spotify_edit_photos",
+      "name": "Edit Photos in Spotify",
+      "app": "Spotify",
+      "actions": [
+        {
+          "type": "hotkey",
+          "keys": ["ctrl", "shift", "p"],
+          "description": "Attempt to open photo editor",
+          "prerequisites": ["app_maximized"],
+          "verification": {
+            "type": "wait",
+            "duration": 1
+          },
+          "error_strategy": "rollback_all"
+        }
+      ],
+      "supported": false,
+      "reason": "Spotify is a music streaming app, not a photo editor. Cannot edit images."
+    }
+  ]
 }
