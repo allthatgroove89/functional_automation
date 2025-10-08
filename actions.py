@@ -22,7 +22,7 @@ def execute_hotkey(action):
     if not keys:
         return False
     pyautogui.hotkey(*keys)
-    time.sleep(0.5)
+    time.sleep(0.1)  # Reduced from 0.5s to 0.1s for faster execution
     
     # Verify completion
     from verification import verify_action_completion
@@ -95,18 +95,19 @@ def execute_click_text(action):
     
     try:
         # Use OCR-based text detection with smart cropping
-        result = ui_detection.find_and_click_text(
+        result = ui_detection.find_text_unified(
             text=text,
             region=region,
             use_smart_crop=use_smart_crop,
             text_hint=text_hint,
-            confidence_threshold=confidence_threshold,
+            click_after_find=True,
             delay=0.5
         )
         
         # Verify completion
         from verification import verify_action_completion
-        return verify_action_completion(action, result)
+        success = result.get('found', False)
+        return verify_action_completion(action, success)
             
     except Exception as e:
         print(f"Error in click_text: {e}")

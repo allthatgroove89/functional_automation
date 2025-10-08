@@ -62,3 +62,4 @@ def verify_application_maximized_visually(app_name, template_path):
     else:
         print(f"  [VISUAL] Template not found - application may not be maximized")
         return False
+

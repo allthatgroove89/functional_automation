@@ -65,7 +65,28 @@ def execute_single_objective(objective, config, session_id=None):
         bool: True if objective completed successfully, False otherwise
     """
     print(f"Executing: {objective['name']}")
-    
+
+    # If objective has a registered handler, delegate to it.
+    try:
+        from objectives.mapping import get_handler_for_objective_id
+        handler = get_handler_for_objective_id(objective.get('id'))
+        if handler:
+            print(f"  [DISPATCH] Found handler for objective id '{objective.get('id')}' - delegating")
+            return handler(objective, config, session_id)
+    except Exception:
+        # If mapping import fails, continue with default flow
+        pass
+
+    # No handler registered -- run the non-dispatching executor
+    return execute_single_objective_no_dispatch(objective, config, session_id)
+
+
+def execute_single_objective_no_dispatch(objective, config, session_id=None):
+    """
+    Core executor for a single objective that does NOT perform handler dispatch.
+    This is intended for internal use by handlers that need to run the default
+    action loop without being re-routed back into handlers (avoids recursion).
+    """
     # Create context for prerequisites
     context = {
         'app_name': objective.get('app', 'Notepad'),
@@ -77,13 +98,13 @@ def execute_single_objective(objective, config, session_id=None):
         'visual_template': 'templates/notepad_titlebar.png',  # Template image for element detection
         'expected_position': [50, 10, 5]  # [x, y, tolerance] - expected position with 5 pixel tolerance
     }
-    
+
     actions = objective.get('actions', [])
     history = []
-    
+
     for i, action in enumerate(actions):
         print(f"Action {i+1}/{len(actions)}: {action['type']}")
-        
+
         # Check prerequisites before action
         prerequisites = action.get('prerequisites', [])
         if prerequisites:
@@ -91,21 +112,21 @@ def execute_single_objective(objective, config, session_id=None):
             if not verify_prerequisites(prerequisites, context):
                 print(f"  [FAIL] Prerequisites not met for action: {action['type']}")
                 return handle_action_failure(action, history, "prerequisites_not_met")
-        
+
         # Execute with retry and error handling
         success = execute_action_with_retry(action, max_retries=3, context=context)
-        
+
         if not success:
             return handle_action_failure(action, history, "execution_failed")
-        
+
         history.append(action)
         context['history'] = history  # Update context with current history
-        
+
         # Save checkpoint after each successful action
         if session_id:
             save_checkpoint(session_id, objective['id'], i + 1, history)
             print(f"  [CHECKPOINT] Saved progress: {len(history)} action(s) completed")
-    
+
     print(f"[OK] Objective '{objective['name']}' completed successfully")
     return True
 

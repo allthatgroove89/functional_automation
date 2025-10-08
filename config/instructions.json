@@ -52,7 +52,7 @@
           "description": "Delete all selected text",
           "verification": {
             "type": "wait",
-            "duration": 1
+            "duration": 0.3
           },
           "error_strategy": "retry_previous"
         },
@@ -62,7 +62,7 @@
           "description": "Close Notepad with Alt+F4",
           "verification": {
             "type": "wait",
-            "duration": 2
+            "duration": 0.5
           },
           "error_strategy": "rollback_all"
         }
@@ -165,7 +165,7 @@
           "description": "Type new content to save",
           "verification": {
             "type": "wait",
-            "duration": 1
+            "duration": 0.3
           },
           "error_strategy": "retry_previous"
         },
@@ -176,7 +176,7 @@
           "confidence": 0.8,
           "verification": {
             "type": "wait",
-            "duration": 1
+            "duration": 0.3
           },
           "error_strategy": "retry_previous"
         },
@@ -187,7 +187,7 @@
           "confidence": 0.8,
           "verification": {
             "type": "wait",
-            "duration": 2
+            "duration": 0.5
           },
           "error_strategy": "retry_previous"
         },
@@ -197,7 +197,7 @@
           "description": "Type filename in save dialog",
           "verification": {
             "type": "wait",
-            "duration": 1
+            "duration": 0.3
           },
           "error_strategy": "retry_previous"
         },
@@ -207,7 +207,7 @@
           "description": "Press Enter to save file",
           "verification": {
             "type": "wait",
-            "duration": 3
+            "duration": 1
           },
           "error_strategy": "email_dev"
         }
@@ -238,7 +238,7 @@
           "description": "Type new content to save",
           "verification": {
             "type": "wait",
-            "duration": 1
+            "duration": 0.3
           },
           "error_strategy": "retry_previous"
         },
@@ -261,7 +261,7 @@
           "description": "Type filename in save dialog",
           "verification": {
             "type": "wait",
-            "duration": 1
+            "duration": 0.3
           },
           "error_strategy": "retry_previous"
         },
@@ -272,7 +272,7 @@
           "confidence": 0.8,
           "verification": {
             "type": "wait",
-            "duration": 2
+            "duration": 0.5
           },
           "error_strategy": "email_dev"
         },
@@ -282,7 +282,7 @@
           "description": "Close Notepad with Alt+F4",
           "verification": {
             "type": "wait",
-            "duration": 2
+            "duration": 0.5
           },
           "error_strategy": "rollback_all"
         }
@@ -291,7 +291,7 @@
     },
     {
       "id": "notepad_save_objective",
-      "name": "Save Notepad File",
+      "name": "Save Notepad File (Save As)",
       "app": "Notepad",
       "actions": [
         {
@@ -307,7 +307,7 @@
           "description": "Clear all text",
           "verification": {
             "type": "wait",
-            "duration": 1
+            "duration": 0.3
           },
           "error_strategy": "rollback_all"
         },
@@ -317,7 +317,7 @@
           "description": "Type content to save",
           "verification": {
             "type": "wait",
-            "duration": 1
+            "duration": 0.3
           },
           "error_strategy": "rollback_all"
         },
@@ -327,7 +327,7 @@
           "description": "Open Save As dialog",
           "verification": {
             "type": "wait",
-            "duration": 1
+            "duration": 0.3
           },
           "error_strategy": "rollback_all"
         },
@@ -337,7 +337,7 @@
           "description": "Type filename",
           "verification": {
             "type": "wait",
-            "duration": 1
+            "duration": 0.3
           },
           "error_strategy": "rollback_all"
         },
@@ -347,7 +347,111 @@
           "description": "Press Enter to save",
           "verification": {
             "type": "wait",
-            "duration": 2
+            "duration": 0.5
+          },
+          "error_strategy": "rollback_all"
+        }
+      ],
+      "supported": true
+    },
+    {
+      "id": "notepad_save_simple",
+      "name": "Save Notepad File (Simple Save)",
+      "app": "Notepad",
+      "actions": [
+        {
+          "type": "hotkey",
+          "keys": ["ctrl", "a"],
+          "description": "Select all text in Notepad",
+          "prerequisites": ["app_maximized"],
+          "error_strategy": "rollback_all"
+        },
+        {
+          "type": "key_press",
+          "key": "backspace",
+          "description": "Clear all text",
+          "verification": {
+            "type": "wait",
+            "duration": 0.3
+          },
+          "error_strategy": "rollback_all"
+        },
+        {
+          "type": "type_text",
+          "text": "Content to save",
+          "description": "Type content to save",
+          "verification": {
+            "type": "wait",
+            "duration": 0.3
+          },
+          "error_strategy": "rollback_all"
+        },
+        {
+          "type": "hotkey",
+          "keys": ["ctrl", "s"],
+          "description": "Save file with Ctrl+S",
+          "verification": {
+            "type": "wait",
+            "duration": 0.5
+          },
+          "error_strategy": "rollback_all"
+        }
+      ],
+      "supported": true
+    },
+    {
+      "id": "notepad_save_existing",
+      "name": "Save Existing Notepad File",
+      "app": "Notepad",
+      "actions": [
+        {
+          "type": "hotkey",
+          "keys": ["ctrl", "o"],
+          "description": "Open existing file",
+          "prerequisites": ["app_maximized"],
+          "verification": {
+            "type": "wait",
+            "duration": 0.3
+          },
+          "error_strategy": "rollback_all"
+        },
+        {
+          "type": "type_text",
+          "text": "test_save.txt",
+          "description": "Type filename to open",
+          "verification": {
+            "type": "wait",
+            "duration": 0.3
+          },
+          "error_strategy": "rollback_all"
+        },
+        {
+          "type": "key_press",
+          "key": "enter",
+          "description": "Press Enter to open file",
+          "verification": {
+            "type": "wait",
+            "duration": 0.5
+          },
+          "error_strategy": "rollback_all"
+        },
+        {
+          "type": "type_text",
+          "text": " - Updated content",
+          "description": "Add content to existing file",
+          "verification": {
+            "type": "wait",
+            "duration": 0.3
+          },
+          "error_strategy": "rollback_all"
+        },
+        {
+          "type": "hotkey",
+          "keys": ["ctrl", "s"],
+          "description": "Save existing file with Ctrl+S",
+          "verification": {
+            "type": "wait",
+            "duration": 0.5
           },
           "error_strategy": "rollback_all"
         }
@@ -365,7 +469,7 @@
           "description": "Close Notepad with Alt+F4",
           "verification": {
             "type": "wait",
-            "duration": 2
+            "duration": 0.5
           },
           "error_strategy": "rollback_all"
         }
@@ -383,7 +487,777 @@
           "description": "Close Notepad with Alt+F4",
           "verification": {
             "type": "wait",
+            "duration": 0.5
+          },
+          "error_strategy": "rollback_all"
+        }
+      ],
+      "supported": true
+    },
+    {
+      "id": "spotify_play",
+      "name": "Play Music in Spotify",
+      "app": "Spotify",
+      "actions": [
+        {
+          "type": "hotkey",
+          "keys": ["space"],
+          "description": "Play music using spacebar",
+          "prerequisites": ["app_maximized"],
+          "verification": {
+            "type": "wait",
+            "duration": 0.3
+          },
+          "error_strategy": "rollback_all"
+        }
+      ],
+      "supported": true
+    },
+    {
+      "id": "spotify_pause",
+      "name": "Pause Music in Spotify",
+      "app": "Spotify",
+      "actions": [
+        {
+          "type": "hotkey",
+          "keys": ["space"],
+          "description": "Pause music with spacebar",
+          "prerequisites": ["app_maximized"],
+          "verification": {
+            "type": "wait",
+            "duration": 0.3
+          },
+          "error_strategy": "rollback_all"
+        }
+      ],
+      "supported": true
+    },
+    {
+      "id": "spotify_next_track",
+      "name": "Skip to Next Track in Spotify",
+      "app": "Spotify",
+      "actions": [
+        {
+          "type": "hotkey",
+          "keys": ["ctrl", "shift", "right"],
+          "description": "Skip to next track using Ctrl+Shift+Right",
+          "prerequisites": ["app_maximized"],
+          "verification": {
+            "type": "wait",
+            "duration": 0.3
+          },
+          "error_strategy": "rollback_all"
+        }
+      ],
+      "supported": true
+    },
+    {
+      "id": "spotify_previous_track",
+      "name": "Go to Previous Track in Spotify",
+      "app": "Spotify",
+      "actions": [
+        {
+          "type": "hotkey",
+          "keys": ["ctrl", "shift", "left"],
+          "description": "Go to previous track using Ctrl+Shift+Left",
+          "prerequisites": ["app_maximized"],
+          "verification": {
+            "type": "wait",
+            "duration": 0.3
+          },
+          "error_strategy": "rollback_all"
+        }
+      ],
+      "supported": true
+    },
+    {
+      "id": "spotify_back_track",
+      "name": "Back Track in Spotify",
+      "app": "Spotify",
+      "actions": [
+        {
+          "type": "click_image",
+          "template": "templates/spotify_previous_button.png",
+          "confidence": 0.4,
+          "description": "Click previous track button using template matching",
+          "prerequisites": ["app_maximized"],
+          "verification": {
+            "type": "wait",
+            "duration": 0.1
+          },
+          "error_strategy": "rollback_all"
+        }
+      ],
+      "supported": true
+    },
+    {
+      "id": "spotify_skip",
+      "name": "Skip Track in Spotify",
+      "app": "Spotify",
+      "actions": [
+        {
+          "type": "click_image",
+          "template": "templates/spotify_next_button.png",
+          "confidence": 0.4,
+          "description": "Click next track button using template matching",
+          "prerequisites": ["app_maximized"],
+          "verification": {
+            "type": "wait",
+            "duration": 0.1
+          },
+          "error_strategy": "rollback_all"
+        }
+      ],
+      "supported": true
+    },
+    {
+      "id": "spotify_shuffle",
+      "name": "Toggle Shuffle in Spotify",
+      "app": "Spotify",
+      "actions": [
+        {
+          "type": "hotkey",
+          "keys": ["ctrl", "s"],
+          "description": "Toggle shuffle mode",
+          "prerequisites": ["app_maximized"],
+          "verification": {
+            "type": "wait",
+            "duration": 0.1
+          },
+          "error_strategy": "rollback_all"
+        }
+      ],
+      "supported": true
+    },
+    {
+      "id": "spotify_search_artist_name",
+      "name": "Search Artist by Name in Spotify",
+      "app": "Spotify",
+      "actions": [
+        {
+          "type": "hotkey",
+          "keys": ["ctrl", "l"],
+          "description": "Open search bar",
+          "prerequisites": ["app_maximized"],
+          "verification": {
+            "type": "wait",
+            "duration": 0.1
+          },
+          "error_strategy": "rollback_all"
+        },
+        {
+          "type": "type_text",
+          "text": "Artist Name",
+          "description": "Search for artist name",
+          "verification": {
+            "type": "wait",
+            "duration": 0.1
+          },
+          "error_strategy": "rollback_all"
+        },
+        {
+          "type": "key_press",
+          "key": "enter",
+          "description": "Press Enter to search",
+          "verification": {
+            "type": "wait",
+            "duration": 0.1
+          },
+          "error_strategy": "rollback_all"
+        }
+      ],
+      "supported": true
+    },
+    {
+      "id": "spotify_search_song_name",
+      "name": "Search Song by Name in Spotify",
+      "app": "Spotify",
+      "actions": [
+        {
+          "type": "hotkey",
+          "keys": ["ctrl", "l"],
+          "description": "Open search bar",
+          "prerequisites": ["app_maximized"],
+          "verification": {
+            "type": "wait",
+            "duration": 0.1
+          },
+          "error_strategy": "rollback_all"
+        },
+        {
+          "type": "type_text",
+          "text": "Song Name",
+          "description": "Search for song name",
+          "verification": {
+            "type": "wait",
+            "duration": 0.1
+          },
+          "error_strategy": "rollback_all"
+        },
+        {
+          "type": "key_press",
+          "key": "enter",
+          "description": "Press Enter to search",
+          "verification": {
+            "type": "wait",
+            "duration": 0.1
+          },
+          "error_strategy": "rollback_all"
+        }
+      ],
+      "supported": true
+    },
+    {
+      "id": "spotify_volume_up",
+      "name": "Increase Volume in Spotify",
+      "app": "Spotify",
+      "actions": [
+        {
+          "type": "hotkey",
+          "keys": ["ctrl", "shift", "up"],
+          "description": "Increase volume with Ctrl+Shift+Up",
+          "prerequisites": ["app_maximized"],
+          "verification": {
+            "type": "wait",
+            "duration": 0.3
+          },
+          "error_strategy": "rollback_all"
+        }
+      ],
+      "supported": true
+    },
+    {
+      "id": "spotify_volume_down",
+      "name": "Decrease Volume in Spotify",
+      "app": "Spotify",
+      "actions": [
+        {
+          "type": "hotkey",
+          "keys": ["ctrl", "shift", "down"],
+          "description": "Decrease volume with Ctrl+Shift+Down",
+          "prerequisites": ["app_maximized"],
+          "verification": {
+            "type": "wait",
+            "duration": 0.3
+          },
+          "error_strategy": "rollback_all"
+        }
+      ],
+      "supported": true
+    },
+    {
+      "id": "spotify_volume_up_alt",
+      "name": "Increase Volume in Spotify (Alternative)",
+      "app": "Spotify",
+      "actions": [
+        {
+          "type": "hotkey",
+          "keys": ["up"],
+          "description": "Increase volume with Up arrow",
+          "verification": {
+            "type": "wait",
+            "duration": 0.3
+          },
+          "error_strategy": "rollback_all"
+        }
+      ],
+      "supported": true
+    },
+    {
+      "id": "spotify_volume_down_alt",
+      "name": "Decrease Volume in Spotify (Alternative)",
+      "app": "Spotify",
+      "actions": [
+        {
+          "type": "hotkey",
+          "keys": ["down"],
+          "description": "Decrease volume with Down arrow",
+          "verification": {
+            "type": "wait",
+            "duration": 0.3
+          },
+          "error_strategy": "rollback_all"
+        }
+      ],
+      "supported": true
+    },
+    {
+      "id": "spotify_volume_down_media",
+      "name": "Decrease Volume with Media Keys",
+      "app": "Spotify",
+      "actions": [
+        {
+          "type": "hotkey",
+          "keys": ["volume_down"],
+          "description": "Decrease volume with media key",
+          "verification": {
+            "type": "wait",
+            "duration": 0.3
+          },
+          "error_strategy": "rollback_all"
+        }
+      ],
+      "supported": true
+    },
+    {
+      "id": "spotify_volume_down_multiple",
+      "name": "Decrease Volume Multiple Times",
+      "app": "Spotify",
+      "actions": [
+        {
+          "type": "hotkey",
+          "keys": ["down"],
+          "description": "Decrease volume with Down arrow",
+          "verification": {
+            "type": "wait",
+            "duration": 0.5
+          },
+          "error_strategy": "rollback_all"
+        },
+        {
+          "type": "hotkey",
+          "keys": ["down"],
+          "description": "Decrease volume again",
+          "verification": {
+            "type": "wait",
+            "duration": 0.5
+          },
+          "error_strategy": "rollback_all"
+        },
+        {
+          "type": "hotkey",
+          "keys": ["down"],
+          "description": "Decrease volume third time",
+          "verification": {
+            "type": "wait",
+            "duration": 0.5
+          },
+          "error_strategy": "rollback_all"
+        }
+      ],
+      "supported": true
+    },
+    {
+      "id": "spotify_search_music",
+      "name": "Search for Music in Spotify",
+      "app": "Spotify",
+      "actions": [
+        {
+          "type": "hotkey",
+          "keys": ["ctrl", "l"],
+          "description": "Open search bar",
+          "prerequisites": ["app_maximized"],
+          "verification": {
+            "type": "wait",
+            "duration": 0.3
+          },
+          "error_strategy": "rollback_all"
+        },
+        {
+          "type": "type_text",
+          "text": "Imagine Dragons",
+          "description": "Search for artist",
+          "verification": {
+            "type": "wait",
+            "duration": 0.5
+          },
+          "error_strategy": "rollback_all"
+        },
+        {
+          "type": "key_press",
+          "key": "enter",
+          "description": "Press Enter to search",
+          "verification": {
+            "type": "wait",
+            "duration": 1
+          },
+          "error_strategy": "rollback_all"
+        }
+      ],
+      "supported": true
+    },
+    {
+      "id": "spotify_search_metallica",
+      "name": "Search for Metallica in Spotify",
+      "app": "Spotify",
+      "actions": [
+        {
+          "type": "hotkey",
+          "keys": ["ctrl", "l"],
+          "description": "Open search bar",
+          "prerequisites": ["app_maximized"],
+          "verification": {
+            "type": "wait",
+            "duration": 0.3
+          },
+          "error_strategy": "rollback_all"
+        },
+        {
+          "type": "type_text",
+          "text": "Metallica",
+          "description": "Search for Metallica",
+          "verification": {
+            "type": "wait",
+            "duration": 0.5
+          },
+          "error_strategy": "rollback_all"
+        },
+        {
+          "type": "key_press",
+          "key": "enter",
+          "description": "Press Enter to search for Metallica",
+          "verification": {
+            "type": "wait",
             "duration": 2
+          },
+          "error_strategy": "rollback_all"
+        },
+        {
+          "type": "key_press",
+          "key": "tab",
+          "description": "Navigate to first result",
+          "verification": {
+            "type": "wait",
+            "duration": 0.3
+          },
+          "error_strategy": "rollback_all"
+        },
+        {
+          "type": "key_press",
+          "key": "tab",
+          "description": "Navigate to play button",
+          "verification": {
+            "type": "wait",
+            "duration": 0.3
+          },
+          "error_strategy": "rollback_all"
+        },
+        {
+          "type": "key_press",
+          "key": "enter",
+          "description": "Click the green play button",
+          "verification": {
+            "type": "wait",
+            "duration": 1
+          },
+          "error_strategy": "rollback_all"
+        }
+      ],
+      "supported": true
+    },
+    {
+      "id": "spotify_search_iron_maiden",
+      "name": "Search for Iron Maiden in Spotify",
+      "app": "Spotify",
+      "actions": [
+        {
+          "type": "hotkey",
+          "keys": ["ctrl", "l"],
+          "description": "Open search bar",
+          "prerequisites": ["app_maximized"],
+          "verification": {
+            "type": "wait",
+            "duration": 0.1
+          },
+          "error_strategy": "rollback_all"
+        },
+        {
+          "type": "type_text",
+          "text": "Iron Maiden",
+          "description": "Search for Iron Maiden",
+          "verification": {
+            "type": "wait",
+            "duration": 0.2
+          },
+          "error_strategy": "rollback_all"
+        },
+        {
+          "type": "key_press",
+          "key": "enter",
+          "description": "Press Enter to search for Iron Maiden",
+          "verification": {
+            "type": "wait",
+            "duration": 1
+          },
+          "error_strategy": "rollback_all"
+        },
+        {
+          "type": "key_press",
+          "key": "tab",
+          "description": "Navigate to first result",
+          "verification": {
+            "type": "wait",
+            "duration": 0.1
+          },
+          "error_strategy": "rollback_all"
+        },
+        {
+          "type": "key_press",
+          "key": "tab",
+          "description": "Navigate to play button",
+          "verification": {
+            "type": "wait",
+            "duration": 0.1
+          },
+          "error_strategy": "rollback_all"
+        },
+        {
+          "type": "key_press",
+          "key": "enter",
+          "description": "Click the green play button",
+          "verification": {
+            "type": "wait",
+            "duration": 0.5
+          },
+          "error_strategy": "rollback_all"
+        }
+      ],
+      "supported": true
+    },
+    {
+      "id": "spotify_search_ozzy_osbourne",
+      "name": "Search for Ozzy Osbourne in Spotify",
+      "app": "Spotify",
+      "actions": [
+        {
+          "type": "hotkey",
+          "keys": ["ctrl", "l"],
+          "description": "Open search bar",
+          "prerequisites": ["app_maximized"],
+          "verification": {
+            "type": "wait",
+            "duration": 0.3
+          },
+          "error_strategy": "rollback_all"
+        },
+        {
+          "type": "type_text",
+          "text": "Ozzy Osbourne",
+          "description": "Search for Ozzy Osbourne",
+          "verification": {
+            "type": "wait",
+            "duration": 0.5
+          },
+          "error_strategy": "rollback_all"
+        },
+        {
+          "type": "key_press",
+          "key": "enter",
+          "description": "Press Enter to search for Ozzy Osbourne",
+          "verification": {
+            "type": "wait",
+            "duration": 2
+          },
+          "error_strategy": "rollback_all"
+        },
+        {
+          "type": "key_press",
+          "key": "tab",
+          "description": "Navigate to first result",
+          "verification": {
+            "type": "wait",
+            "duration": 0.3
+          },
+          "error_strategy": "rollback_all"
+        },
+        {
+          "type": "key_press",
+          "key": "tab",
+          "description": "Navigate to play button",
+          "verification": {
+            "type": "wait",
+            "duration": 0.3
+          },
+          "error_strategy": "rollback_all"
+        },
+        {
+          "type": "key_press",
+          "key": "enter",
+          "description": "Click the green play button",
+          "verification": {
+            "type": "wait",
+            "duration": 1
+          },
+          "error_strategy": "rollback_all"
+        }
+      ],
+      "supported": true
+    },
+    {
+      "id": "spotify_search_artist",
+      "name": "Search for Artist in Spotify",
+      "app": "Spotify",
+      "actions": [
+        {
+          "type": "hotkey",
+          "keys": ["ctrl", "l"],
+          "description": "Open search bar",
+          "prerequisites": ["app_maximized"],
+          "verification": {
+            "type": "wait",
+            "duration": 0.3
+          },
+          "error_strategy": "rollback_all"
+        },
+        {
+          "type": "type_text",
+          "text": "Artist Name",
+          "description": "Search for any artist",
+          "verification": {
+            "type": "wait",
+            "duration": 0.5
+          },
+          "error_strategy": "rollback_all"
+        },
+        {
+          "type": "key_press",
+          "key": "enter",
+          "description": "Press Enter to search",
+          "verification": {
+            "type": "wait",
+            "duration": 1
+          },
+          "error_strategy": "rollback_all"
+        }
+      ],
+      "supported": true
+    },
+    {
+      "id": "spotify_close",
+      "name": "Close Spotify",
+      "app": "Spotify",
+      "actions": [
+        {
+          "type": "hotkey",
+          "keys": ["alt", "f4"],
+          "description": "Close Spotify with Alt+F4",
+          "verification": {
+            "type": "wait",
+            "duration": 0.5
+          },
+          "error_strategy": "rollback_all"
+        }
+      ],
+      "supported": true
+    },
+    {
+      "id": "spotify_volume_up",
+      "name": "Volume Up in Spotify",
+      "app": "Spotify",
+      "actions": [
+        {
+          "type": "hotkey",
+          "keys": ["ctrl", "up"],
+          "description": "Increase volume using Ctrl+Up",
+          "prerequisites": ["app_maximized"],
+          "verification": {
+            "type": "wait",
+            "duration": 0.3
+          },
+          "error_strategy": "rollback_all"
+        }
+      ],
+      "supported": true
+    },
+    {
+      "id": "spotify_volume_down",
+      "name": "Volume Down in Spotify",
+      "app": "Spotify",
+      "actions": [
+        {
+          "type": "hotkey",
+          "keys": ["ctrl", "down"],
+          "description": "Decrease volume using Ctrl+Down",
+          "prerequisites": ["app_maximized"],
+          "verification": {
+            "type": "wait",
+            "duration": 0.3
+          },
+          "error_strategy": "rollback_all"
+        }
+      ],
+      "supported": true
+    },
+    {
+      "id": "spotify_mute",
+      "name": "Mute/Unmute in Spotify",
+      "app": "Spotify",
+      "actions": [
+        {
+          "type": "hotkey",
+          "keys": ["ctrl", "shift", "m"],
+          "description": "Mute/unmute using Ctrl+Shift+M",
+          "prerequisites": ["app_maximized"],
+          "verification": {
+            "type": "wait",
+            "duration": 0.3
+          },
+          "error_strategy": "rollback_all"
+        }
+      ],
+      "supported": true
+    },
+    {
+      "id": "spotify_shuffle_toggle",
+      "name": "Toggle Shuffle On/Off in Spotify",
+      "app": "Spotify",
+      "actions": [
+        {
+          "type": "hotkey",
+          "keys": ["ctrl", "s"],
+          "description": "Toggle shuffle using Ctrl+S",
+          "prerequisites": ["app_maximized"],
+          "verification": {
+            "type": "wait",
+            "duration": 0.3
+          },
+          "error_strategy": "rollback_all"
+        }
+      ],
+      "supported": true
+    },
+    {
+      "id": "spotify_play_artist_button",
+      "name": "Click Green Play Button for Artist",
+      "app": "Spotify",
+      "actions": [
+        {
+          "type": "click_image",
+          "template": "templates/spotify_green_play_button.png",
+          "confidence": 0.7,
+          "description": "Click the green play button for artist",
+          "prerequisites": ["app_maximized"],
+          "verification": {
+            "type": "wait",
+            "duration": 1
+          },
+          "error_strategy": "rollback_all"
+        }
+      ],
+      "supported": true
+    },
+    {
+      "id": "spotify_test_basic",
+      "name": "Test Basic Spotify Controls",
+      "app": "Spotify",
+      "actions": [
+        {
+          "type": "hotkey",
+          "keys": ["space"],
+          "description": "Test spacebar for play/pause",
+          "verification": {
+            "type": "wait",
+            "duration": 0.5
+          },
+          "error_strategy": "rollback_all"
+        },
+        {
+          "type": "hotkey",
+          "keys": ["down"],
+          "description": "Test down arrow for volume",
+          "verification": {
+            "type": "wait",
+            "duration": 0.3
           },
           "error_strategy": "rollback_all"
         }
@@ -414,7 +1288,7 @@
           "description": "Type test text for undo",
           "verification": {
             "type": "wait",
-            "duration": 1
+            "duration": 0.3
           },
           "error_strategy": "retry_previous"
         },
@@ -424,7 +1298,7 @@
           "description": "Use Ctrl+Z to undo the text",
           "verification": {
             "type": "wait",
-            "duration": 2
+            "duration": 0.5
           },
           "error_strategy": "retry_previous"
         },
@@ -434,7 +1308,7 @@
           "description": "Type new text to verify undo worked",
           "verification": {
             "type": "wait",
-            "duration": 1
+            "duration": 0.3
           },
           "error_strategy": "rollback_all"
         }

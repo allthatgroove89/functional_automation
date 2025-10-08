@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 import pyautogui
 import os
+from PIL import Image
 
 
 def take_screenshot(save_path="screenshots/screen.png"):
@@ -28,7 +29,7 @@ def take_screenshot(save_path="screenshots/screen.png"):
         return ""
 
 
-def find_template(template_path, threshold=0.8, region=None, screenshot_path=None):
+def find_template(template_path, threshold=0.4, region=None, screenshot_path=None):
     """Find template image on screen using OpenCV template matching
     
     Args:
@@ -446,82 +447,160 @@ def find_text_with_bounding_boxes(text, region=None, confidence_threshold=0.8, s
         List of dicts with 'text', 'bbox', 'confidence' for each match
         Format: [{'text': 'found_text', 'bbox': (x, y, w, h), 'confidence': 0.95}]
     """
-    try:
-        import pytesseract
-        from PIL import Image, ImageDraw
-        
-        # Set tesseract path for Windows
-        pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
-        
-        # Take screenshot using existing function
+    # Unified OCR: prefer PaddleOCR if available, fall back to pytesseract
+    def _ensure_screenshot():
         screenshot_path = take_screenshot("screenshots/ocr_search.png")
+        return screenshot_path
+
+    def _paddleocr_to_dicts(paddle_result, region_offset=(0, 0)):
+        # PaddleOCR returns a list of lists: [[(box), (text, confidence)], ...]
+        matches = []
+        for line in paddle_result:
+            try:
+                box = line[0]
+                text_conf = line[1]
+                detected_text = text_conf[0] if isinstance(text_conf, (list, tuple)) else text_conf
+                confidence = float(text_conf[1]) if isinstance(text_conf, (list, tuple)) and len(text_conf) > 1 else 1.0
+
+                xs = [int(pt[0]) for pt in box]
+                ys = [int(pt[1]) for pt in box]
+                x_min, x_max = min(xs), max(xs)
+                y_min, y_max = min(ys), max(ys)
+                w = x_max - x_min
+                h = y_max - y_min
+                x = x_min + region_offset[0]
+                y = y_min + region_offset[1]
+
+                matches.append({
+                    'text': detected_text,
+                    'bbox': (x, y, w, h),
+                    'confidence': float(confidence),
+                    'center': (x + w//2, y + h//2)
+                })
+            except Exception:
+                continue
+        return matches
+
+    try:
+        # Try PaddleOCR first
+        try:
+            from paddleocr import PaddleOCR
+            paddle_available = True
+        except Exception:
+            paddle_available = False
+
+        # If region cropping requested, crop first and pass to OCR
+        screenshot_path = _ensure_screenshot()
         if not screenshot_path:
             return []
-        
-        # Load and crop if region specified
-        image = Image.open(screenshot_path)
-        if region:
+
+        # Load original image with PIL to crop and for debug drawing
+        try:
+            pil_img = Image.open(screenshot_path)
+        except Exception:
+            pil_img = None
+
+        region_offset = (0, 0)
+        if region and pil_img is not None:
             x, y, w, h = region
-            image = image.crop((x, y, x+w, y+h))
-            print(f"[OCR] Searching in region: ({x}, {y}, {w}, {h})")
-        
-        # Get detailed OCR data with bounding boxes
-        ocr_data = pytesseract.image_to_data(image, output_type=pytesseract.Output.DICT)
-        
+            pil_crop = pil_img.crop((x, y, x+w, y+h))
+            region_offset = (x, y)
+            # Save the cropped region to a temp file for PaddleOCR if needed
+            temp_crop_path = "screenshots/ocr_crop.png"
+            pil_crop.save(temp_crop_path)
+            ocr_input_path = temp_crop_path
+        else:
+            ocr_input_path = screenshot_path
+
         matches = []
-        text_lower = text.lower()
-        
-        # Process each detected text element
-        for i in range(len(ocr_data['text'])):
-            detected_text = ocr_data['text'][i].strip()
-            confidence = int(ocr_data['conf'][i]) / 100.0
-            
-            if detected_text and confidence >= confidence_threshold:
-                # Check if our target text is in this detected text
-                if text_lower in detected_text.lower():
-                    x = ocr_data['left'][i]
-                    y = ocr_data['top'][i]
-                    w = ocr_data['width'][i]
-                    h = ocr_data['height'][i]
-                    
-                    # Adjust coordinates if we cropped the image
-                    if region:
-                        x += region[0]
-                        y += region[1]
-                    
-                    match = {
-                        'text': detected_text,
-                        'bbox': (x, y, w, h),
-                        'confidence': confidence,
-                        'center': (x + w//2, y + h//2)
-                    }
-                    matches.append(match)
-        
-        if save_debug and matches:
-            # Draw bounding boxes on image for debugging
-            debug_image = image.copy()
-            draw = ImageDraw.Draw(debug_image)
-            for match in matches:
-                x, y, w, h = match['bbox']
-                if region:
-                    x -= region[0]
-                    y -= region[1]
-                draw.rectangle([x, y, x+w, y+h], outline='red', width=2)
-                draw.text((x, y-20), f"{match['confidence']:.2f}", fill='red')
-            
-            debug_path = "screenshots/ocr_debug.png"
-            debug_image.save(debug_path)
-            print(f"[DEBUG] OCR debug image saved: {debug_path}")
-        
+
+        if paddle_available:
+            try:
+                ocr = PaddleOCR(use_angle_cls=True, lang='en')
+                result = ocr.ocr(ocr_input_path, cls=True)
+                # result is a list of lists; flatten
+                flattened = []
+                for r in result:
+                    # r could be [[box, (text, conf)], ...] depending on version
+                    if isinstance(r, list) and len(r) > 0 and isinstance(r[0], list):
+                        for item in r:
+                            flattened.append(item)
+                    else:
+                        flattened.append(r)
+
+                matches = _paddleocr_to_dicts(flattened, region_offset=region_offset)
+            except Exception as e:
+                print(f"[WARN] PaddleOCR failed: {e} - falling back to pytesseract")
+                paddle_available = False
+
+        # If Paddle not available or failed, use pytesseract
+        if not paddle_available:
+            try:
+                import pytesseract
+                from PIL import ImageDraw
+                # keep original Windows tesseract location, but don't force it
+                if os.name == 'nt' and not getattr(pytesseract.pytesseract, 'tesseract_cmd', None):
+                    pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+
+                # Use PIL image (cropped if needed)
+                if region and pil_img is not None:
+                    image_for_ocr = pil_crop
+                else:
+                    image_for_ocr = pil_img if pil_img is not None else Image.open(screenshot_path)
+
+                ocr_data = pytesseract.image_to_data(image_for_ocr, output_type=pytesseract.Output.DICT)
+                text_lower = text.lower()
+
+                for i in range(len(ocr_data['text'])):
+                    detected_text = str(ocr_data['text'][i]).strip()
+                    try:
+                        confidence = float(ocr_data['conf'][i]) / 100.0
+                    except Exception:
+                        confidence = 1.0
+
+                    if detected_text and confidence >= confidence_threshold:
+                        if text_lower in detected_text.lower():
+                            lx = int(ocr_data['left'][i]) + region_offset[0]
+                            ly = int(ocr_data['top'][i]) + region_offset[1]
+                            lw = int(ocr_data['width'][i])
+                            lh = int(ocr_data['height'][i])
+                            match = {
+                                'text': detected_text,
+                                'bbox': (lx, ly, lw, lh),
+                                'confidence': confidence,
+                                'center': (lx + lw//2, ly + lh//2)
+                            }
+                            matches.append(match)
+
+                if save_debug and matches and image_for_ocr is not None:
+                    debug_image = image_for_ocr.copy()
+                    draw = ImageDraw.Draw(debug_image)
+                    for match in matches:
+                        x, y, w, h = match['bbox']
+                        if region:
+                            # when drawing on cropped image, adjust
+                            draw.rectangle([x-region_offset[0], y-region_offset[1], x-region_offset[0]+w, y-region_offset[1]+h], outline='red', width=2)
+                        else:
+                            draw.rectangle([x, y, x+w, y+h], outline='red', width=2)
+                        draw.text((max(0, x-region_offset[0]), max(0, y-region_offset[1])-20), f"{match['confidence']:.2f}", fill='red')
+                    debug_path = "screenshots/ocr_debug.png"
+                    debug_image.save(debug_path)
+                    print(f"[DEBUG] OCR debug image saved: {debug_path}")
+
+            except ImportError:
+                print("[WARN] pytesseract not installed - OCR with bounding boxes disabled")
+                return []
+            except Exception as e:
+                print(f"[ERROR] OCR with bounding boxes failed: {e}")
+                return []
+
         print(f"[OCR] Found {len(matches)} match(es) for '{text}'")
         return matches
-        
-    except ImportError:
-        print("[WARN] pytesseract not installed - OCR with bounding boxes disabled")
-        return []
+
     except Exception as e:
-        print(f"[ERROR] OCR with bounding boxes failed: {e}")
+        print(f"[ERROR] OCR wrapper failed: {e}")
         return []
+
 
 
 def smart_crop_for_ocr(image_path, text_hint=None, min_text_size=20):

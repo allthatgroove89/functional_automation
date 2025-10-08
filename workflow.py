@@ -28,15 +28,20 @@ def execute_objective(objective, config, session_id=None):
     for i, action in enumerate(actions):
         print(f"Action {i+1}/{len(actions)}: {action['type']}")
         
-        # Check prerequisites before action
+        # Step 1: Verify prerequisites for the action
         prerequisites = action.get('prerequisites', [])
         if prerequisites:
-            print(f"  Checking {len(prerequisites)} prerequisite(s)...")
+            print(f"  [STEP 1] Checking {len(prerequisites)} prerequisite(s)...")
             if not verify_prerequisites(prerequisites, context):
                 print(f"  [FAIL] Prerequisites not met for action: {action['type']}")
                 return handle_action_failure(action, history, "prerequisites_not_met")
         
-        # Execute with retry and error handling
+        # Step 2: Perform any pre-requisite required for the action
+        print(f"  [STEP 2] Performing pre-requisites for {action['type']}...")
+        # No special prerequisites needed in clean implementation
+        
+        # Step 3: Execute the action with proper workflow
+        print(f"  [STEP 3] Executing {action['type']} action...")
         success = execute_action_with_retry(action, max_retries=3, context=context)
         
         if not success:
@@ -54,6 +59,9 @@ def execute_objective(objective, config, session_id=None):
     return True
 
 
+# Clean implementation - no special prerequisites needed
+
+
 def execute_action_with_retry(action, max_retries=3, context=None):
     """Execute action with retry logic, screen stability, and error handling"""
     if context is None:
@@ -64,9 +72,9 @@ def execute_action_with_retry(action, max_retries=3, context=None):
         
         # Check screen stability before action
         from verification import verify_screen_stable
-        if not verify_screen_stable(timeout=2):
+        if not verify_screen_stable(timeout=1):
             print("  Screen not stable, waiting...")
-            time.sleep(1)
+            time.sleep(0.5)
         
         # Ensure correct window is focused before action
         app_name = context.get('app_name', 'Notepad')
@@ -75,7 +83,7 @@ def execute_action_with_retry(action, max_retries=3, context=None):
         if window:
             print(f"  [FOCUS] Ensuring '{app_name}' window is focused...")
             focus_window(window)
-            time.sleep(0.5)  # Give time for focus to take effect
+            time.sleep(0.1)  # Give time for focus to take effect
         else:
             print(f"  [WARN] Window '{app_name}' not found - proceeding anyway")
         
