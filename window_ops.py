@@ -29,13 +29,14 @@ def find_window(app_name):
             if window.title and window.title.strip():
                 try:
                     title = window.title.strip()
-                    # Handle Unicode characters safely
+                    # Handle Unicode characters safely for display
                     safe_title = title.encode('utf-8', errors='replace').decode('utf-8')
                     print(f"  [DEBUG] Window {i+1}: '{safe_title}'")
                 except Exception as e:
                     print(f"  [DEBUG] Window {i+1}: '[Unicode Error: {e}]'")
+                    continue
                 
-                # Check for Spotify patterns (including track titles)
+                # Check for Spotify patterns (including track titles) - use original title for logic
                 if ("spotify" in title.lower() or "spotify premium" in title.lower() or 
                     (" - " in title and len(title) > 10 and not any(x in title.lower() for x in ['cursor', 'code', 'editor', 'functional_automation']))):  # Track title pattern like "Artist - Song"
                     try:
@@ -126,7 +127,11 @@ def maximize_window(window):
         return False
     
     try:
-        safe_title = window.title.encode('utf-8', errors='replace').decode('utf-8')
+        # Handle Unicode safely for display
+        try:
+            safe_title = window.title.encode('utf-8', errors='replace').decode('utf-8')
+        except:
+            safe_title = "Spotify"
         print(f"  [MAXIMIZE] Attempting to maximize: '{safe_title}'")
         
         # Method 1: Standard maximize

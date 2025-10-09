@@ -669,6 +669,123 @@
       "supported": true
     },
     {
+      "id": "spotify_search_metallica",
+      "name": "Search Metallica in Spotify",
+      "app": "Spotify",
+      "actions": [
+        {
+          "type": "hotkey",
+          "keys": ["ctrl", "l"],
+          "description": "Open search bar",
+          "prerequisites": ["app_maximized"],
+          "verification": {
+            "type": "wait",
+            "duration": 0.1
+          },
+          "error_strategy": "rollback_all"
+        },
+        {
+          "type": "type_text",
+          "text": "Metallica",
+          "description": "Search for Metallica",
+          "verification": {
+            "type": "wait",
+            "duration": 0.1
+          },
+          "error_strategy": "rollback_all"
+        },
+        {
+          "type": "key_press",
+          "key": "enter",
+          "description": "Press Enter to search",
+          "verification": {
+            "type": "wait",
+            "duration": 0.1
+          },
+          "error_strategy": "rollback_all"
+        }
+      ],
+      "supported": true
+    },
+    {
+      "id": "spotify_search_iron_maiden",
+      "name": "Search Iron Maiden in Spotify",
+      "app": "Spotify",
+      "actions": [
+        {
+          "type": "hotkey",
+          "keys": ["ctrl", "l"],
+          "description": "Open search bar",
+          "prerequisites": ["app_maximized"],
+          "verification": {
+            "type": "wait",
+            "duration": 0.1
+          },
+          "error_strategy": "rollback_all"
+        },
+        {
+          "type": "type_text",
+          "text": "Iron Maiden",
+          "description": "Search for Iron Maiden",
+          "verification": {
+            "type": "wait",
+            "duration": 0.1
+          },
+          "error_strategy": "rollback_all"
+        },
+        {
+          "type": "key_press",
+          "key": "enter",
+          "description": "Press Enter to search",
+          "verification": {
+            "type": "wait",
+            "duration": 0.1
+          },
+          "error_strategy": "rollback_all"
+        }
+      ],
+      "supported": true
+    },
+    {
+      "id": "spotify_search_ozzy_osbourne",
+      "name": "Search Ozzy Osbourne in Spotify",
+      "app": "Spotify",
+      "actions": [
+        {
+          "type": "hotkey",
+          "keys": ["ctrl", "l"],
+          "description": "Open search bar",
+          "prerequisites": ["app_maximized"],
+          "verification": {
+            "type": "wait",
+            "duration": 0.1
+          },
+          "error_strategy": "rollback_all"
+        },
+        {
+          "type": "type_text",
+          "text": "Ozzy Osbourne",
+          "description": "Search for Ozzy Osbourne",
+          "verification": {
+            "type": "wait",
+            "duration": 0.1
+          },
+          "error_strategy": "rollback_all"
+        },
+        {
+          "type": "key_press",
+          "key": "enter",
+          "description": "Press Enter to search",
+          "verification": {
+            "type": "wait",
+            "duration": 0.1
+          },
+          "error_strategy": "rollback_all"
+        }
+      ],
+      "supported": true
+    },
+    {
       "id": "spotify_search_song_name",
       "name": "Search Song by Name in Spotify",
       "app": "Spotify",
@@ -877,8 +994,8 @@
       "supported": true
     },
     {
-      "id": "spotify_search_metallica",
-      "name": "Search for Metallica in Spotify",
+      "id": "spotify_search_iron_maiden",
+      "name": "Search for Iron Maiden in Spotify",
       "app": "Spotify",
       "actions": [
         {
@@ -894,8 +1011,8 @@
         },
         {
           "type": "type_text",
-          "text": "Metallica",
-          "description": "Search for Metallica",
+          "text": "Iron Maiden",
+          "description": "Search for Iron Maiden",
           "verification": {
             "type": "wait",
             "duration": 0.5
@@ -905,7 +1022,7 @@
         {
           "type": "key_press",
           "key": "enter",
-          "description": "Press Enter to search for Metallica",
+          "description": "Press Enter to search for Iron Maiden",
           "verification": {
             "type": "wait",
             "duration": 2

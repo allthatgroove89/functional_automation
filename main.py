@@ -1,6 +1,8 @@
 import sys
+from datetime import datetime
 from config import load_config, get_app_config
 from workflow import WorkflowManager
+from workflow.workflow_executor import WORKFLOW_SEQUENCES, execute_workflow_sequence_by_name
 from utils import print_banner
 from cli_utils import parse_objective_args, resolve_app_for_objective
 
@@ -32,9 +34,31 @@ def main():
         print('[FAIL] Application preparation failed')
         return 2
 
-    # One token: either objective id or app name
+    # One token: either objective id, sequence name, or app name
     if len(sys.argv) == 2:
         token = sys.argv[1].strip()
+        
+        # Check if it's a workflow sequence
+        if token in WORKFLOW_SEQUENCES:
+            print(f"[INFO] Detected workflow sequence: {token}")
+            print(f"Sequence: {' -> '.join(WORKFLOW_SEQUENCES[token])}")
+            
+            # Determine app from sequence (assume Spotify for now)
+
+            app_name = "Spotify"
+            try:
+                app_config = get_app_config(config, app_name)
+                
+            except Exception as e:
+                print(f"[ERROR] {e}")
+                return 1
+            
+            # Execute the sequence
+            session_id = datetime.now().strftime("%Y%m%d_%H%M%S")
+            ok = execute_workflow_sequence_by_name(token, app_config, session_id)
+            return 0 if ok else 3
+        
+        # Try to resolve as objective
         app_name = resolve_app_for_objective(config, token)
         wm = WorkflowManager(config)
         if app_name:

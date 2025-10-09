@@ -17,12 +17,16 @@ def filter_supported_objectives(objectives, objective_ids=None):
     """
     print("Filtering supported and unsupported objectives...")
     
-    # Filter by objective IDs if provided
+    # Filter by objective IDs if provided, preserving order
     if objective_ids:
         filtered_objectives = []
-        for objective in objectives:
-            if objective.get('id') in objective_ids:
-                filtered_objectives.append(objective)
+        # Create a lookup dictionary for faster searching
+        objective_lookup = {obj.get('id'): obj for obj in objectives}
+        
+        # Process objectives in the order specified by objective_ids
+        for objective_id in objective_ids:
+            if objective_id in objective_lookup:
+                filtered_objectives.append(objective_lookup[objective_id])
         objectives = filtered_objectives
         print(f"Filtered to {len(objectives)} objectives by IDs")
     

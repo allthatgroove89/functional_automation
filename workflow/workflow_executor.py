@@ -11,6 +11,123 @@ from notifications import notify_error
 from state import save_checkpoint
 
 
+# Predefined workflow sequences
+WORKFLOW_SEQUENCES = {
+    "spotify_music_session": [
+        "spotify_search_artist_name",
+        "spotify_play", 
+        "spotify_next_track",
+        "spotify_search_artist_name",
+        "spotify_play",
+        "spotify_pause",
+        "spotify_close"
+    ],
+    "spotify_quick_play": [
+        "spotify_play",
+        "spotify_next_track", 
+        "spotify_pause"
+    ],
+    "spotify_search_and_play": [
+        "spotify_search_artist_name",
+        "spotify_play",
+        "spotify_pause",
+        "spotify_close"
+    ],
+    "spotify_volume_control": [
+        "spotify_volume_up",
+        "spotify_volume_down",
+        "spotify_mute"
+    ],
+    "spotify_filter_browse": [
+        "spotify_filter_artists",
+        "spotify_filter_albums", 
+        "spotify_filter_songs",
+        "spotify_filter_all"
+    ],
+    "spotify_music_journey": [
+        "spotify_search_metallica",
+        "spotify_play",
+        "spotify_next_track",
+        "spotify_search_iron_maiden", 
+        "spotify_play",
+        "spotify_search_ozzy_osbourne",
+        "spotify_play",
+        "spotify_pause",
+        "spotify_close"
+    ],
+    "spotify_simple_test": [
+        "spotify_search_metallica",
+        "spotify_play",
+        "spotify_pause"
+    ]
+}
+
+
+def execute_workflow_sequence_by_name(sequence_name, config, session_id=None):
+    """
+    Execute a predefined workflow sequence by name
+    
+    Args:
+        sequence_name: Name of the predefined sequence
+        config: Configuration object
+        session_id: Optional session ID for checkpointing
+    
+    Returns:
+        bool: True if sequence completed successfully, False otherwise
+    """
+    if sequence_name not in WORKFLOW_SEQUENCES:
+        print(f"[ERROR] Unknown workflow sequence: {sequence_name}")
+        print(f"Available sequences: {list(WORKFLOW_SEQUENCES.keys())}")
+        return False
+    
+    sequence_objectives = WORKFLOW_SEQUENCES[sequence_name]
+    print(f"Executing workflow sequence: {sequence_name}")
+    print(f"Sequence: {' -> '.join(sequence_objectives)}")
+    
+    # First, prepare the application (Spotify)
+    print("Preparing Spotify for automation...")
+    from app_preparation import launch_application, maximize_application, verify_application_ready
+    from config import load_config, get_app_config
+    
+    app_name = "Spotify"
+    try:
+        # Load the full config
+        full_config = load_config()
+        app_config = get_app_config(full_config, app_name)
+    except Exception as e:
+        print(f"[ERROR] {e}")
+        return False
+    
+    # Launch, maximize, and verify Spotify
+    if not launch_application(app_name, app_config, max_retries=3):
+        print(f"[FAIL] Failed to launch {app_name}")
+        return False
+    
+    if not maximize_application(app_name, max_retries=3):
+        print(f"[FAIL] Failed to maximize {app_name}")
+        return False
+    
+    if not verify_application_ready(app_name):
+        print(f"[FAIL] {app_name} is not ready")
+        return False
+    
+    print(f"[OK] {app_name} prepared successfully")
+    
+    # Convert objective IDs to full objective objects
+    from objectives import parse_json_objectives, filter_supported_objectives
+    all_objectives = parse_json_objectives(config)
+    supported, unsupported = filter_supported_objectives(all_objectives, sequence_objectives)
+    
+    if not supported:
+        print(f"[ERROR] No supported objectives found in sequence '{sequence_name}'")
+        return False
+    
+    if unsupported:
+        print(f"[WARN] Some objectives in sequence are not supported: {[obj['id'] for obj in unsupported]}")
+    
+    return execute_workflow_sequence(supported, config, session_id)
+
+
 def execute_workflow_sequence(supported_objectives, config, session_id=None):
     """
     For each of the objectives that are supported, start a workflow process to complete them in sequence
