@@ -1,4 +1,4 @@
-# 🚀 Functional Automation Framework - Complete Documentation
+# 🚀 Internship Automation Framework - Complete Documentation
 
 ## 📋 Table of Contents
 1. [Project Overview](#project-overview)
