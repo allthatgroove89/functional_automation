@@ -55,7 +55,8 @@ def main():
             
             # Execute the sequence
             session_id = datetime.now().strftime("%Y%m%d_%H%M%S")
-            ok = execute_workflow_sequence_by_name(token, app_config, session_id)
+            # Pass the full top-level config (not the app-specific config)
+            ok = execute_workflow_sequence_by_name(token, config, session_id)
             return 0 if ok else 3
         
         # Try to resolve as objective
@@ -102,6 +103,13 @@ def main():
         return 2
 
     if len(objective_ids) == 1:
+        # If the single objective token is actually a predefined workflow sequence,
+        # execute the named sequence instead of treating it as an objective id.
+        if objective_ids[0] in WORKFLOW_SEQUENCES:
+            session_id = datetime.now().strftime("%Y%m%d_%H%M%S")
+            ok = execute_workflow_sequence_by_name(objective_ids[0], config, session_id)
+            return 0 if ok else 3
+
         ok = wm.execute_single_objective(app_name, app_config, objective_ids[0])
         return 0 if ok else 3
 

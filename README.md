@@ -2,6 +2,58 @@
 
 A Python-based desktop automation framework focused on robust app preparation, visual verification (OpenCV), OCR-based interactions (Tesseract), and configurable objective sequences.
 
+internship_automation/
+├── main.py                      Entry point and orchestration
+├── config.py                    Configuration management (loads config/config.json & instructions)
+├── workflow.py                  Objective execution engine (executes actions and handles retries/checkpoints)
+├── actions.py                   Action handlers (type, click, hotkey, verify)
+├── ui_detection.py              UI detection, template-matching, screenshots, OCR helpers
+├── verification.py              Prerequisites & completion verification utilities
+├── window_ops.py                Window management helpers (pygetwindow wrappers)
+├── notifications.py             Email/notification helpers (dotenv + SMTP fallback)
+├── state.py                     Checkpoint and state management
+├── utils.py                     Small utilities (print_banner, etc.)
+├── cli_utils.py                 CLI parsing helpers
+├── run_objective.py             Utility script to run a single objective
+├── show_spotify_actions.py      Utility script / debugging helpers for Spotify
+├── DOCUMENTATION.md             Project documentation
+├── README.md                    Project README
+├── requirements.txt             Dependencies for the project
+├── PROJECT_STATUS_OCTOBER_8_2025.md
+├── app_preparation/             Package: app launch/verification helpers
+│   ├── __init__.py
+│   ├── app_launcher.py
+│   ├── app_maximizer.py
+│   └── app_verifier.py
+├── objectives/                  Package: objective parsing, handlers, mapping
+│   ├── __init__.py
+│   ├── handlers.py
+│   ├── json_parser.py
+│   ├── mapping.py
+│   ├── objective_filter.py
+│   └── objective_notifier.py
+├── workflow/                    Package: workflow manager & executor
+│   ├── __init__.py
+│   ├── workflow_manager.py
+│   └── workflow_executor.py
+├── config/                      Configuration files
+│   ├── config.json              Application settings (apps list, defaults)
+│   └── instructions.json        Objectives and action sequences
+├── tests/                       Test suite and reports
+│   ├── test_framework.py        Comprehensive test harness
+│   ├── simple_click_test.py
+│   ├── simple_click_actions.py
+│   ├── quick_click_test.py
+│   ├── demo_click_actions.py
+│   ├── run_spotify_objective.py
+│   ├── test_spotify_open.py
+│   ├── test_report_20251007_121801.json
+│   ├── test_report_20251013_214404.json
+│   └── test_report_20251013_214438.json
+├── screenshots/                 Runtime screenshots used by UI detection
+├── checkpoints/                 Checkpoint JSON files created during runs
+└── __pycache__/                 Compiled Python files
+
 ## Quick links
 - Config: `config/config.json`
 - Objectives: `config/instructions.json`

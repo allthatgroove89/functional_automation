@@ -539,8 +539,8 @@
       "actions": [
         {
           "type": "hotkey",
-          "keys": ["ctrl", "shift", "right"],
-          "description": "Skip to next track using Ctrl+Shift+Right",
+          "keys": ["ctrl", "right"],
+          "description": "Skip to next track using Ctrl+Right",
           "prerequisites": ["app_maximized"],
           "verification": {
             "type": "wait",

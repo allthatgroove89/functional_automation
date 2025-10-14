@@ -115,7 +115,9 @@ def execute_workflow_sequence_by_name(sequence_name, config, session_id=None):
     
     # Convert objective IDs to full objective objects
     from objectives import parse_json_objectives, filter_supported_objectives
-    all_objectives = parse_json_objectives(config)
+    # parse_json_objectives expects the main config (contains instructions file path).
+    # Ensure we pass the full config loaded above rather than the app-specific config
+    all_objectives = parse_json_objectives(full_config)
     supported, unsupported = filter_supported_objectives(all_objectives, sequence_objectives)
     
     if not supported:
@@ -125,7 +127,8 @@ def execute_workflow_sequence_by_name(sequence_name, config, session_id=None):
     if unsupported:
         print(f"[WARN] Some objectives in sequence are not supported: {[obj['id'] for obj in unsupported]}")
     
-    return execute_workflow_sequence(supported, config, session_id)
+    # Use the full top-level config for downstream execution (contains instructions path)
+    return execute_workflow_sequence(supported, full_config, session_id)
 
 
 def execute_workflow_sequence(supported_objectives, config, session_id=None):
