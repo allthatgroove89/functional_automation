@@ -1,4 +1,4 @@
-# Functional Automation Project Status
+# Internship Automation Project Status
 October 8, 2025
 
 ---
