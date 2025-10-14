@@ -17,6 +17,8 @@
       "verification_templates": [
         "templates/spotify_titlebar.png"
       ]
+      ,
+      "process_presence_sufficient": false
     }
   ],
   "default_app": "Spotify",

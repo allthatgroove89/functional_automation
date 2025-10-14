@@ -145,13 +145,17 @@ def safe_find_window(app_name):
 
 
 def launch_application(app_name, app_config, max_retries=3):
-    """Get Application ready for action - with proper error handling"""
-    
+    """Get Application ready for action - with proper error handling.
+
+    Returns True if the application is ready (either already open or launched successfully),
+    or False if it could not be ensured running.
+    """
+
     # Validate inputs
     if not app_name or not isinstance(app_name, str):
         print(f"[ERROR] Invalid app_name provided")
-        return {'launched': False}
-    
+        return False
+
     print(f"Checking if {app_name} is already open...")
 
     # Resolve path from config
@@ -168,8 +172,8 @@ def launch_application(app_name, app_config, max_retries=3):
     # Quick window check - is it already open?
     window = safe_find_window(app_name)
     if window:
-        print(f"[OK] {app_name} is already open")
-        return {'launched': False}
+        print(f"[OK] {app_name} is already open - reusing existing instance")
+        return True
 
     # Check if process is running (might be open but window not detected)
     if resolved_path:
@@ -182,58 +186,109 @@ def launch_application(app_name, app_config, max_retries=3):
                 window = safe_find_window(app_name)
                 if window:
                     print(f"[OK] {app_name} window found after {i+1} check(s)")
-                    return {'launched': False}
-            print(f"  [WARN] Process running but window not visible")
-            return {'launched': False}
+                    return True
+            # If the process is running but window wasn't found, only treat as available
+            # if the app_config indicates process presence is sufficient.
+            try:
+                if isinstance(app_config, dict) and app_config.get('process_presence_sufficient', True):
+                    print(f"  [WARN] Process running but window not visible - treating as available")
+                    return True
+                else:
+                    print(f"  [WARN] Process running but window not visible - will attempt to surface window")
+            except Exception:
+                print(f"  [WARN] Process running but window not visible - treating as available")
+                return True
 
     # SPOTIFY SPECIFIC LAUNCH LOGIC
     if app_name.lower() == 'spotify':
         print(f"Opening Spotify...")
-        
-        # Method 1: Try executable launch first
+
+        # Decide whether process presence should be treated as sufficient.
+        # This is configurable per-app via `process_presence_sufficient` in the app's config.
+        # Default behavior: True (backwards compatible).
+        process_presence_sufficient = True
+        try:
+            if isinstance(app_config, dict) and 'process_presence_sufficient' in app_config:
+                process_presence_sufficient = bool(app_config.get('process_presence_sufficient'))
+        except Exception:
+            process_presence_sufficient = True
+
+        # If process is already running and the config says that's sufficient, return True
+        try:
+            if process_presence_sufficient and is_spotify_running():
+                print(f"  [INFO] Spotify process detected - treating process presence as sufficient")
+                return True
+        except Exception:
+            pass
+
+        # Attempts are fixed to 3 (no count configuration allowed)
+        max_attempts = 3
+        attempts_done = 0
+
+        # Method 1: Try executable launch first, while we still have attempts left
         if resolved_path:
+            while attempts_done < max_attempts:
+                attempts_done += 1
+                try:
+                    print(f"  [ATTEMPT {attempts_done}/{max_attempts}] Launching via executable: {resolved_path}")
+                    startup_delay = app_config.get('startup_delay', 3) if app_config else 3
+                    launch_app(resolved_path, startup_delay)
+                    # Wait for Spotify to start and surface a window
+                    time.sleep(startup_delay)
+
+                    for check in range(5):
+                        window = safe_find_window('Spotify')
+                        if window:
+                            print(f"[OK] Spotify opened successfully via executable")
+                            return True
+                        time.sleep(1)
+
+                    # If process exists now, treat as available only if toggle allows it
+                    try:
+                        if process_presence_sufficient and is_spotify_running():
+                            print(f"  [OK] Spotify process started (no visible window) - treating as available")
+                            return True
+                    except Exception:
+                        pass
+
+                except Exception as e:
+                    print(f"  [WARN] Executable launch attempt failed: {e}")
+
+        # If still not available and we still have attempts left, try Windows search
+        # Only attempt Windows search if no Spotify process exists (respect user preference)
+        while attempts_done < max_attempts:
             try:
-                print(f"  [ATTEMPT 1] Launching via executable: {resolved_path}")
-                startup_delay = app_config.get('startup_delay', 3) if app_config else 3
-                launch_app(resolved_path, startup_delay)
-                
-                # Wait for Spotify to start
-                time.sleep(startup_delay)
-                
-                # Check for window (multiple attempts with delays)
+                if is_spotify_running():
+                    # Honor the per-app toggle: only treat process presence as sufficient when allowed
+                    if process_presence_sufficient:
+                        print(f"  [INFO] Spotify process detected during attempts - treating as sufficient")
+                        return True
+                    else:
+                        print(f"  [INFO] Spotify process detected during attempts - config requires window; continuing attempts")
+            except Exception:
+                pass
+
+            attempts_done += 1
+            print(f"  [ATTEMPT {attempts_done}/{max_attempts}] Using Windows search fallback...")
+            if click_spotify_icon():
                 for check in range(5):
                     window = safe_find_window('Spotify')
                     if window:
-                        print(f"[OK] Spotify opened successfully via executable")
-                        return {'launched': True}
-                    if check < 4:
-                        time.sleep(1)
-                
-                print(f"  [WARN] Executable launched but window not detected")
-                return {'launched': True}
-                    
-            except Exception as e:
-                print(f"  [WARN] Executable launch failed: {e}")
-
-        # Method 2: Fallback to Windows search
-        print(f"  [ATTEMPT 2] Using Windows search fallback...")
-        if click_spotify_icon():
-            # Wait and check multiple times
-            for check in range(5):
-                window = safe_find_window('Spotify')
-                if window:
-                    print(f"[OK] Spotify opened successfully via Windows search")
-                    return {'launched': True}
-                if check < 4:
+                        print(f"[OK] Spotify opened successfully via Windows search")
+                        return True
                     time.sleep(1)
-            
-            print(f"  [WARN] Windows search executed but window not detected")
-            return {'launched': True}
 
-        # All methods failed
-        print(f"[FAIL] Could not open Spotify")
-        notify_error("Failed to open Spotify", "Spotify")
-        return {'launched': False}
+                try:
+                    if process_presence_sufficient and is_spotify_running():
+                        print(f"  [OK] Spotify process started after Windows search - treating as available")
+                        return True
+                except Exception:
+                    pass
+
+        # All attempts exhausted
+        print(f"[FAIL] Could not open Spotify after {max_attempts} attempt(s)")
+        notify_error(f"Failed to open Spotify after {max_attempts} attempt(s)", "support")
+        return False
 
     # GENERIC APPLICATION LAUNCH (non-Spotify)
     print(f"{app_name} not found, launching...")
@@ -261,7 +316,7 @@ def launch_application(app_name, app_config, max_retries=3):
                 window = safe_find_window(app_name)
                 if window:
                     print(f"[OK] {app_name} successfully launched on attempt {attempt}")
-                    return {'launched': True}
+                    return True
                 if check < 4:
                     time.sleep(1)
             
@@ -278,4 +333,4 @@ def launch_application(app_name, app_config, max_retries=3):
     # All attempts exhausted
     print(f"[FAIL] Failed to launch {app_name} after {max_retries} attempts")
     notify_error(f"Failed to launch {app_name} after {max_retries} attempts", app_name)
-    return {'launched': False}
+    return False

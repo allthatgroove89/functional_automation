@@ -67,7 +67,7 @@ functional_automation/
 
 1. **Clone the repository**
 ```bash
-git clone <repository-url>
+git clone https://github.com/allthatgroove89/internship_automation
 cd functional_automation
 ```
 
@@ -100,16 +100,16 @@ TO_EMAIL=recipient@example.com
 {
   "apps": [
     {
-      "name": "Notepad",
-      "path": "C:\\Windows\\System32\\notepad.exe",
-      "startup_delay": 2,
+      "name": "Spotify",
+      "path": "C:\\Users\\%USERNAME%\\AppData\\Roaming\\Spotify\\Spotify.exe",
+      "startup_delay": 3,
       "max_retries": 3,
       "verification_templates": [
-        "templates/notepad_titlebar.png"
+        "templates/spotify_titlebar.png"
       ]
     }
   ],
-  "default_app": "Notepad",
+  "default_app": "Spotify",
   "instructions_file": "config/instructions.json",
   "settings": {
     "screenshot_dir": "screenshots",
@@ -133,21 +133,35 @@ TO_EMAIL=recipient@example.com
 {
   "objectives": [
     {
-      "id": "notepad_basic_typing",
-      "name": "Basic Notepad Typing",
-      "app": "Notepad",
+      "id": "spotify_search_metallica",
+      "name": "Spotify Search Metallica",
+      "app": "Spotify",
       "actions": [
         {
-          "type": "type_text",
-          "text": "Hello, this is automated typing!",
-          "description": "Type hello message",
+          "type": "click_image",
+          "template": "templates/spotify_search_box.png",
+          "description": "Click search box",
           "prerequisites": ["app_maximized"],
+          "error_strategy": "email_dev"
+        },
+        {
+          "type": "type_text",
+          "text": "Metallica",
+          "description": "Type artist name into search",
+          "prerequisites": [],
           "verification": {
             "type": "ocr_text",
-            "text": "Hello",
-            "region": [0, 0, 800, 200]
+            "text": "Metallica",
+            "region": [200, 100, 600, 200]
           },
           "error_strategy": "rollback_all"
+        },
+        {
+          "type": "click_image",
+          "template": "templates/spotify_first_result.png",
+          "description": "Click first search result",
+          "prerequisites": [],
+          "error_strategy": "email_dev"
         }
       ],
       "supported": true

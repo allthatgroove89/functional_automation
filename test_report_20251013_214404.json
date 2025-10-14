@@ -1,0 +1,31 @@
+{
+  "test_summary": {
+    "total_tests": 3,
+    "passed": 1,
+    "failed": 1,
+    "errors": 0,
+    "skipped": 1,
+    "success_rate": 33.33333333333333,
+    "test_duration": "0:00:03.678994"
+  },
+  "test_results": [
+    {
+      "test_name": "app_preparation_success",
+      "status": "FAIL",
+      "message": "Visual verification failed",
+      "timestamp": "2025-10-13T21:44:04.115060"
+    },
+    {
+      "test_name": "app_preparation_failure",
+      "status": "PASS",
+      "message": "Expected failure: [WinError 2] The system cannot find the file specified",
+      "timestamp": "2025-10-13T21:44:04.116083"
+    },
+    {
+      "test_name": "app_preparation_retry_success",
+      "status": "SKIP",
+      "message": "Requires complex retry simulation",
+      "timestamp": "2025-10-13T21:44:04.117044"
+    }
+  ]
+}
