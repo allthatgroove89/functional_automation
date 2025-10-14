@@ -1,4 +1,4 @@
-# Functional Automation Framework
+# Intership Automation Framework
 
 A Python-based desktop automation framework focused on robust app preparation, visual verification (OpenCV), OCR-based interactions (Tesseract), and configurable objective sequences.
 
