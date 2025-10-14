@@ -14,7 +14,7 @@
 
 ## 🎯 Project Overview
 
-The Functional Automation Framework is a comprehensive Python-based automation system designed to automate desktop applications with robust error handling, verification systems, and intelligent UI detection.
+The Internship Automation Framework is a comprehensive Python-based automation system designed to automate desktop applications with robust error handling, verification systems, and intelligent UI detection.
 
 ### ✨ Key Features
 - **Multi-Action Support**: Text typing, clicking, hotkeys, OCR-based interactions
